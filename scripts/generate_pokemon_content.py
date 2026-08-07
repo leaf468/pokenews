@@ -35,41 +35,57 @@ SYSTEM_PROMPT = """\
 
 글쓰기 규칙 — 이게 제일 중요함:
 - 첫 문장이 곧 훅이야. "최근 ~소식을 알아볼까요", "오늘은 ~을 소개할게요" 같은 밋밋한 도입부 절대 금지.
-  대신 충격적인 숫자/사실을 바로 던지거나, 질문으로 던지거나, "실화냐" 느낌의 감탄으로 시작해.
-  예: "이 카드 한 장이 웬만한 아파트 한 채값이래요 😳", "코스트코 주차장에서 카드 때문에 진짜 몸싸움이 났다는데요"
+- 훅 스타일을 매번 바꿔. 아래 중 그때그때 소재에 어울리는 걸 골라 쓰고, 절대 하나의 패턴에 고정하지 마:
+  (a) 숫자/사실을 그냥 툭 던지기 — "이 카드 한 장 값이 아파트 한 채예요"
+  (b) 질문으로 시작 — "3달러 주고 산 카드, 20년 뒤에 얼마가 됐을까요?"
+  (c) 상황 묘사로 바로 진입 — "경매장에 정적이 흘렀대요. 호가가 시작되자마자..."
+  (d) 대화체/츤데레 코멘트 — "이걸 3천 원에 팔았다고요? 그 판단 두고두고 후회할 듯"
+  (e) 의성어·리액션 컷 — "억... 소리 나오는 가격이에요"
+  → "실화냐", "실화임", 특정 이모지(😳 등) 같은 특정 문구·이모지를 매번 반복해서 쓰는 건 금지.
+  같은 감탄사·훅 패턴을 연속으로 재사용하지 말고, 매번 다른 표현을 새로 짜내.
 - 구체적인 숫자·카드 이름·사람 이름·장소를 반드시 넣어. "어떤 카드가 비싸게 팔렸어요" 같은 뭉뚱그린 표현 금지.
-- 존댓말 베이스("~예요", "~해요")이되 감탄사·반말투 추임새("실화냐", "미쳤네요", "이거 실화?") 섞어서
-  친구한테 카톡하듯 캐주얼하게. 딱딱한 보도자료 톤/번역체 금지.
-- 이모지는 적당히 (문단마다 0~2개), 과장된 클릭베이트성 거짓말은 금지하되 흥미를 끄는 과장(감탄사, 리액션)은 좋음.
+- 존댓말 베이스("~예요", "~해요")이되 감탄사·반말투 추임새를 자연스럽게 섞어서 친구한테 카톡하듯
+  캐주얼하게. 딱딱한 보도자료 톤/번역체 금지. 매번 같은 추임새만 재활용하지 말고 다채롭게.
+- 이모지는 적당히(문단마다 0~2개)이고 매번 같은 이모지만 쓰지 마. 과장된 클릭베이트성 거짓말은
+  금지하되 흥미를 끄는 과장(감탄사, 리액션)은 좋음.
 - 전체 500자 이내 (Threads 글자 제한), 여러 개 올릴 경우 각각 500자 이내
 - 마지막 줄에 해시태그 2~4개 (#포켓몬카드 #포켓몬TCG 등 상황에 맞게, 소재에 맞는 구체적 태그 추가)
 - 출처 매체명은 언급하되 URL은 본문에 넣지 않음 (별도로 관리)
+- 이미지: 웹 검색 결과 중에 실제 그 카드/사건을 보여주는 이미지가 있으면 (기사 대표 이미지,
+  경매 리스팅 사진 등) 그 이미지의 직접 URL(.jpg/.png로 끝나거나 이미지 CDN 링크)을 image_url에
+  넣어. 확실하지 않으면 절대 지어내지 말고 빈 문자열로 둬.
 
-아래는 목표로 하는 톤/구성 예시야 (내용을 그대로 베끼지 말고 이런 느낌으로 — 실제 포스트는 매번
-웹 검색으로 사실을 새로 확인해서 작성해):
+아래는 목표로 하는 톤/구성 예시야 (문구를 그대로 베끼지 말고 이런 다양함의 정도로 — 실제 포스트는
+매번 웹 검색으로 사실을 새로 확인해서 작성하고, 훅 스타일도 매번 다르게):
 
-예시 1 (가격 충격형):
-"1998년 코로코로 대회에서 딱 20장 뿌려진 카드, 지금 얼마인지 아세요? 😳
-'피카츄 일러스트레이터' PSA10 등급 한 장이 이번에 165억 원에 낙찰됐어요. 원래 3천만 원대에
-거래되던 카드가 몇 년 새 이렇게 됐다는 거... 카드 한 장이 웬만한 건물값이네요.
+예시 1 (가격 충격형 · 숫자 툭 던지기):
+"1998년 코로코로 대회 상품으로 딱 20장 풀린 카드 한 장 값이 아파트 한 채예요.
+'피카츄 일러스트레이터' PSA10 등급이 이번에 165억 원에 낙찰됐거든요. 원래 3천만 원대였던
+걸 생각하면... 종이 한 장이 이렇게까지 될 일인가 싶네요.
 #포켓몬카드 #피카츄일러스트레이터 #포켓몬TCG"
 
-예시 2 (사건/드라마형):
-"코스트코 주차장에서 포켓몬 카드 때문에 진짜 주먹다짐이 났대요 🥊
-한정판 부스터 박스 사려고 줄 서 있던 사람들 사이에 새치기 시비가 붙었는데 결국 몸싸움까지
-번져서 경찰 출동. 영상 퍼지면서 '카드 하나에 저렇게까지?' 반응 폭발 중이에요.
+예시 2 (사건/드라마형 · 상황 묘사로 진입):
+"주차장에 경찰차가 왔대요. 이유는 포켓몬 카드.
+한정판 부스터 박스 구매 줄에서 새치기 시비가 붙어 몸싸움까지 번졌고, 영상이 퍼지면서
+'카드 하나에 저렇게까지?' 반응이 쏟아지고 있어요.
 #포켓몬카드 #포켓몬TCG #카드리셀"
 
-예시 3 (신제품/이벤트형):
-"9월 16일 30주년 기념팩 나옵니다 🎉
-초기 카드들 리메이크 일러스트로 채워질 예정이라 벌써 프리오더 정보 찾아다니는 사람 많아요.
-11월엔 메가진화 신규 확장팩까지 예고돼서 하반기 내내 지갑 위험할 듯...
+예시 3 (유명인/화제형 · 질문으로 시작):
+"3달러 주고 산 카드, 20년 뒤에 얼마가 됐을지 아세요?
+지금은 몇만 배로 뛴 셈이라 원주인이 땅을 치고 있다는 후일담까지 커뮤니티에 돌고 있어요.
+당근에 헐값으로 팔았다가 뒤늦게 시세 알게 된 사람들 얘기, 생각보다 흔해요.
+#포켓몬카드 #포켓몬TCG #카드시세"
+
+예시 4 (신제품/이벤트형 · 대화체 코멘트):
+"9월 16일 30주년 기념팩 나온다는데, 이거 지갑 챙겨야죠.
+초기 카드들 리메이크 일러스트로 채워질 예정이라 벌써 프리오더 정보 찾아다니는 사람 많고,
+11월엔 메가진화 신규 확장팩까지 예고돼서 하반기 내내 위험할 듯...
 #포켓몬카드 #포켓몬TCG #30주년기념팩"
 """
 
 
-def load_recent_topics(days: int = 7) -> list[str]:
-    """최근 게시한 소식 제목 목록을 불러와 중복 소재를 피한다."""
+def load_recent_entries(days: int = 7) -> list[dict]:
+    """최근 게시한 항목(소재+훅 첫 문장)을 불러와 중복을 피한다."""
     if not STATE_FILE.exists():
         return []
     try:
@@ -78,18 +94,18 @@ def load_recent_topics(days: int = 7) -> list[str]:
         return []
 
     cutoff = datetime.now(KST) - timedelta(days=days)
-    topics = []
+    entries = []
     for entry in state.get("posts", []):
         try:
             posted_at = datetime.fromisoformat(entry["posted_at"])
         except (KeyError, ValueError):
             continue
         if posted_at >= cutoff:
-            topics.append(entry.get("topic", ""))
-    return [t for t in topics if t]
+            entries.append(entry)
+    return entries
 
 
-def save_topic(topic: str, has_news: bool) -> None:
+def save_topic(topic: str, has_news: bool, hook: str = "") -> None:
     REPORTS_DIR.mkdir(exist_ok=True)
     state = {"posts": []}
     if STATE_FILE.exists():
@@ -102,6 +118,7 @@ def save_topic(topic: str, has_news: bool) -> None:
         {
             "topic": topic,
             "has_news": has_news,
+            "hook": hook,
             "posted_at": datetime.now(KST).isoformat(),
         }
     )
@@ -112,13 +129,24 @@ def save_topic(topic: str, has_news: bool) -> None:
     )
 
 
-def build_user_prompt(mode: str, recent_topics: list[str]) -> str:
+def build_user_prompt(mode: str, recent_entries: list[dict]) -> str:
     now_kst = datetime.now(KST).strftime("%Y-%m-%d %H:%M KST")
+
+    recent_topics = [e.get("topic", "") for e in recent_entries if e.get("topic")]
+    recent_hooks = [e.get("hook", "") for e in recent_entries if e.get("hook")]
 
     avoid_block = ""
     if recent_topics:
         joined = "\n".join(f"- {t}" for t in recent_topics[-20:])
         avoid_block = f"\n\n최근에 이미 다룬 소재 (겹치지 않게 새로운 걸 찾아줘):\n{joined}"
+
+    hook_block = ""
+    if recent_hooks:
+        joined = "\n".join(f"- {h}" for h in recent_hooks[-8:])
+        hook_block = (
+            f"\n\n최근에 이미 쓴 첫 문장/훅들 (같은 패턴·같은 감탄사·같은 이모지 "
+            f"반복하지 말고 완전히 다른 스타일로 새로 써):\n{joined}"
+        )
 
     if mode == "scheduled":
         instruction = (
@@ -153,6 +181,7 @@ def build_user_prompt(mode: str, recent_topics: list[str]) -> str:
 
 {instruction}
 {avoid_block}
+{hook_block}
 
 다음 JSON 형식으로만 응답해:
 {{
@@ -160,6 +189,7 @@ def build_user_prompt(mode: str, recent_topics: list[str]) -> str:
   "topic": "짧은 소재 요약 (한 줄, 중복 체크용)",
   "source_name": "출처 매체/사이트 이름",
   "source_url": "출처 URL",
+  "image_url": "그 카드/사건을 보여주는 실제 이미지 직접 URL (확실할 때만, 없으면 빈 문자열)",
   "threads_posts": ["포스트1 전체 텍스트", "포스트2 전체 텍스트 (선택, 필요시에만)"]
 }}
 
@@ -169,14 +199,14 @@ has_news가 false면 threads_posts는 빈 배열로 둬.
 
 def generate(mode: str) -> dict:
     client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-    recent_topics = load_recent_topics()
+    recent_entries = load_recent_entries()
 
     response = client.responses.create(
         model=os.environ.get("OPENAI_MODEL", "gpt-5-mini"),
         tools=[{"type": "web_search"}],
         input=[
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": build_user_prompt(mode, recent_topics)},
+            {"role": "user", "content": build_user_prompt(mode, recent_entries)},
         ],
     )
 
@@ -208,6 +238,7 @@ def write_outputs(data: dict, mode: str) -> tuple[Path, Path] | None:
                 "topic": data.get("topic", ""),
                 "source_name": data.get("source_name", ""),
                 "source_url": data.get("source_url", ""),
+                "image_url": data.get("image_url", ""),
                 "mode": mode,
                 "generated_at": datetime.now(KST).isoformat(),
             },
@@ -218,7 +249,8 @@ def write_outputs(data: dict, mode: str) -> tuple[Path, Path] | None:
     )
 
     print(f"✅ 생성 완료: {out_path}")
-    save_topic(data.get("topic", ""), True)
+    first_line = posts[0].strip().splitlines()[0] if posts[0].strip() else ""
+    save_topic(data.get("topic", ""), True, hook=first_line)
     return out_path, meta_path
 
 

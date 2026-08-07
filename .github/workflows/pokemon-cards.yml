@@ -74,6 +74,7 @@ jobs:
           TOPIC=$(jq -r '.topic' "$META_FILE")
           SOURCE_NAME=$(jq -r '.source_name' "$META_FILE")
           SOURCE_URL=$(jq -r '.source_url' "$META_FILE")
+          IMAGE_URL=$(jq -r '.image_url // ""' "$META_FILE")
           GENERATED_AT=$(jq -r '.generated_at' "$META_FILE")
 
           if [ "$MODE" = "scheduled" ]; then MODE_KO="정기"; else MODE_KO="속보"; fi
@@ -81,6 +82,10 @@ jobs:
 
           BODY_FILE=$(mktemp)
           {
+            if [ -n "$IMAGE_URL" ]; then
+              echo "![관련 이미지]($IMAGE_URL)"
+              echo
+            fi
             echo "## 게시 본문"
             echo
             echo '```'
