@@ -22,6 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      issues: write
 
     steps:
       - uses: actions/checkout@v4
@@ -62,13 +63,51 @@ jobs:
           THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
           THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
 
+      - name: Create GitHub Issue
+        if: steps.generate.outputs.has_content == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MODE: ${{ steps.mode.outputs.mode }}
+          THREADS_FILE: ${{ steps.generate.outputs.threads_file }}
+          META_FILE: ${{ steps.generate.outputs.meta_file }}
+        run: |
+          TOPIC=$(jq -r '.topic' "$META_FILE")
+          SOURCE_NAME=$(jq -r '.source_name' "$META_FILE")
+          SOURCE_URL=$(jq -r '.source_url' "$META_FILE")
+          GENERATED_AT=$(jq -r '.generated_at' "$META_FILE")
+
+          if [ "$MODE" = "scheduled" ]; then MODE_KO="정기"; else MODE_KO="속보"; fi
+          TITLE="🃏 [$MODE_KO] ${TOPIC:0:80}"
+
+          BODY_FILE=$(mktemp)
+          {
+            echo "## 게시 본문"
+            echo
+            echo '```'
+            cat "$THREADS_FILE"
+            echo '```'
+            echo
+            echo "---"
+            echo
+            echo "- **출처**: [$SOURCE_NAME]($SOURCE_URL)"
+            echo "- **모드**: $MODE"
+            echo "- **생성 시각(KST)**: $GENERATED_AT"
+          } > "$BODY_FILE"
+
+          gh issue create \
+            --repo "${{ github.repository }}" \
+            --title "$TITLE" \
+            --body-file "$BODY_FILE" \
+            --label "pokemon-post" \
+            --label "mode:$MODE"
+
       - name: Commit and push
         if: steps.generate.outputs.has_content == 'true'
         run: |
           git config user.name "Pokemon Cards Bot"
           git config user.email "pokemon-cards-bot@users.noreply.github.com"
 
-          git add reports/
+          git add reports/pokemon_posted_state.json
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else

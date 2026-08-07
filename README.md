@@ -21,27 +21,37 @@ DeepAgents 같은 무거운 에이전트 프레임워크 없이, OpenAI API를 �
 
 ## 🎯 다루는 콘텐츠
 
-- 신제품/재판 소식, 가격·품절 관련 가십
-- 유명 카드의 역사와 일화, 경매 낙찰 비하인드
-- 가품(가짜 카드) 구별 팁, 보관·감정(PSA 등) 꿀팁
+소재 우선순위 (앞쪽일수록 더 자주 다룸):
+
+1. **가격 충격형** — "그때는 이랬는데 지금은…" 식 극적인 시세 변화, 경매 낙찰가
+2. **사건/드라마형** — 매장 앞 몸싸움, 사재기·리셀 논란, 사기/위조 적발, 커뮤니티 논쟁
+3. **유명인/화제형** — 셀럽 관련 화제, 개봉 방송 대박/폭망, 밈이 된 순간
+4. **신제품/이벤트형** — 신팩·재판·한정판 발매, 팝업스토어·전시회
+5. **역사/트리비아형** — 유명 카드 뒷이야기, 희귀본 비하인드
+6. **실용 팁형** (최후순위) — 가품 구별, 보관·감정(PSA 등) 꿀팁
+
+문체는 "보도자료" 톤이 아니라 훅으로 시작해서 구체적인 숫자·이름을 넣는 캐주얼한
+개인 계정 톤을 지향함 (자세한 규칙은 `SYSTEM_PROMPT` 참고).
 
 ## 🔧 동작 방식
 
 ```
 GitHub Actions (매 2시간, 하루 14회 트리거)
         ↓
-정기 슬롯(6회)인지 속보 체크 슬롯인지 판별
+정기 슬롯(6회)인지 속보 체크 슬롯인지 판별 (github.event.schedule 기준)
         ↓
 scripts/generate_pokemon_content.py
   - OpenAI Responses API (web_search 툴)로 소식 검색
   - 최근 게시 소재(reports/pokemon_posted_state.json) 중복 회피
-  - 정기 슬롯: 항상 포스트 생성
-  - 속보 슬롯: 진짜 속보 없으면 아무것도 생성하지 않고 종료
+  - 정기/속보 모두 진짜 소식 없으면 가십·트리비아로 대체해서 항상 포스트 생성
         ↓ (생성됐을 때만)
 scripts/post_to_threads.py
   - Threads API로 자동 게시 (여러 포스트면 답글로 스레드 연결)
         ↓
-reports/ 에 커밋 & 푸시
+GitHub Issue 생성 (라벨: pokemon-post, mode:scheduled/mode:breaking)
+  - 본문 + 출처 + 모드 + 생성 시각 기록 → 발행 로그이자 수동 복붙용
+        ↓
+reports/pokemon_posted_state.json 만 커밋 & 푸시 (중복 방지용 이력)
 ```
 
 ## 🚀 설치 방법
@@ -62,7 +72,8 @@ THREADS_ACCESS_TOKEN=your_threads_access_token   # 선택
 THREADS_USER_ID=your_threads_user_id             # 선택
 ```
 
-Threads 시크릿이 없으면 게시는 건너뛰고 `reports/` 에 텍스트 파일만 생성됨(수동 복붙용).
+Threads 시크릿이 없으면 게시는 건너뛰고, 대신 매번 생성되는 GitHub Issue에서 본문을
+복붙해서 수동으로 올리면 됨.
 
 ### 3. GitHub Actions 활성화
 
@@ -70,10 +81,9 @@ Actions 탭 → 워크플로우 활성화 → **Pokemon Cards Threads Bot** → 
 
 ## 📖 결과물
 
-- `reports/YYYYMMDD-HHMM-pokemon-threads.txt` — 실제 게시된(또는 게시할) 본문
-  - 여러 포스트로 나뉘면 `===POST_SEPARATOR===` 로 구분 (스레드 답글 연결용)
-- `reports/YYYYMMDD-HHMM-pokemon-meta.json` — 소재 요약, 출처 이름/URL
-- `reports/pokemon_posted_state.json` — 최근 게시 소재 이력 (중복 방지용)
+- **GitHub Issues** (`pokemon-post` 라벨) — 매 발행마다 새 Issue 생성, 본문에 게시 텍스트
+  + 출처 + 모드 + 생성 시각 기록. `mode:scheduled` / `mode:breaking` 라벨로 필터링 가능.
+- `reports/pokemon_posted_state.json` — 최근 게시 소재 이력 (중복 방지용, git에 커밋됨)
 
 ## 🔧 커스터마이징
 
@@ -105,11 +115,13 @@ OPENAI_MODEL=gpt-5-mini
 - `THREADS_ACCESS_TOKEN` / `THREADS_USER_ID` 시크릿이 올바른지 확인
 - 토큰 만료 여부 확인 (Threads 장기 토큰은 60일마다 갱신 필요)
 
-### 액션은 성공(success)인데 reports에 아무것도 안 쌓여요
+### 액션은 성공(success)인데 Issue가 안 쌓여요
 - 워크플로우 로그에서 `Generate Pokemon card content` 스텝 출력에 "새로 올릴 만한 소식이 없어요"가
-  찍혀 있는지 확인 (`Post to Threads`/`Commit and push` 스텝이 `skipped`로 표시됨)
+  찍혀 있는지 확인 (`Post to Threads`/`Create GitHub Issue`/`Commit and push` 스텝이 `skipped`로 표시됨)
 - 정기 발행 모드가 원치 않게 breaking으로 판정되고 있지 않은지 `Determine mode` 스텝 로그의
   `mode=` 값과 `github.event.schedule` 값을 확인
+- `Create GitHub Issue` 스텝이 라벨 관련 에러로 실패한다면 저장소에 `pokemon-post`,
+  `mode:scheduled`, `mode:breaking` 라벨이 있는지 확인 (`gh label list`)
 
 ## 📝 라이선스
 
