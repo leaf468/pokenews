@@ -13,8 +13,9 @@ on:
           - breaking
   schedule:
     # 정기 발행 6회 (한국시간 09/12/15/18/21/23시 = UTC 0/3/6/9/12/14시)
-    # 그 사이는 2시간 간격으로 속보 체크만 수행 (뉴스 없으면 조용히 스킵)
-    - cron: '0 0,2,3,4,6,8,9,10,12,14,16,18,20,22 * * *'
+    - cron: '0 0,3,6,9,12,14 * * *'
+    # 그 사이는 2시간 간격으로 속보 체크 (별도 cron이라 지연되어도 정기 슬롯과 안 섞임)
+    - cron: '0 2,4,8,10,16,18,20,22 * * *'
 
 jobs:
   post:
@@ -39,10 +40,11 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "mode=${{ inputs.mode }}" >> "$GITHUB_OUTPUT"
           else
-            UTC_HOUR=$(date -u +'%H')
-            # 정기 발행 슬롯: UTC 00, 03, 06, 09, 12, 14시
-            case "$UTC_HOUR" in
-              00|03|06|09|12|14) echo "mode=scheduled" >> "$GITHUB_OUTPUT" ;;
+            # 실행 시각(wall clock)이 아니라 어느 cron이 실제로 트리거했는지로 판정.
+            # GitHub Actions 스케줄은 부하로 최대 1시간 가까이 지연될 수 있어서,
+            # date -u +%H로 판정하면 지연된 정기 슬롯이 breaking으로 잘못 떨어짐.
+            case "${{ github.event.schedule }}" in
+              '0 0,3,6,9,12,14 * * *') echo "mode=scheduled" >> "$GITHUB_OUTPUT" ;;
               *) echo "mode=breaking" >> "$GITHUB_OUTPUT" ;;
             esac
           fi
