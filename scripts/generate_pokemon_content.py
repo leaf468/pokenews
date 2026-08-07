@@ -11,15 +11,40 @@ scheduled/breaking 모드 모두 진짜 소식이 없으면 가벼운 가십/트
 
 import json
 import os
+import re
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import requests
 from openai import OpenAI
 
 REPORTS_DIR = Path("reports")
 STATE_FILE = REPORTS_DIR / "pokemon_posted_state.json"
 KST = timezone(timedelta(hours=9))
+
+OG_IMAGE_RE = re.compile(
+    r'<meta[^>]+property=["\']og:image(?::secure_url)?["\'][^>]+content=["\']([^"\']+)["\']',
+    re.IGNORECASE,
+)
+
+
+def fetch_og_image(url: str) -> str:
+    """출처 페이지의 og:image 메타태그에서 실제 대표 이미지 URL을 가져온다.
+    모델이 이미지 URL을 지어내지 않도록, 웹 검색 결과가 아니라 실제 페이지를 fetch해서 확인한다."""
+    if not url:
+        return ""
+    try:
+        resp = requests.get(
+            url,
+            timeout=6,
+            headers={"User-Agent": "Mozilla/5.0 (compatible; PokemonCardsBot/1.0)"},
+        )
+        resp.raise_for_status()
+        match = OG_IMAGE_RE.search(resp.text[:200_000])
+        return match.group(1) if match else ""
+    except (requests.RequestException, UnicodeDecodeError):
+        return ""
 
 SYSTEM_PROMPT = """\
 너는 포켓몬 카드(포켓몬 트레이딩 카드 게임) 덕질 커뮤니티에서 팔로워 많은 개인 계정 운영자야.
@@ -51,9 +76,9 @@ SYSTEM_PROMPT = """\
 - 전체 500자 이내 (Threads 글자 제한), 여러 개 올릴 경우 각각 500자 이내
 - 마지막 줄에 해시태그 2~4개 (#포켓몬카드 #포켓몬TCG 등 상황에 맞게, 소재에 맞는 구체적 태그 추가)
 - 출처 매체명은 언급하되 URL은 본문에 넣지 않음 (별도로 관리)
-- 이미지: 웹 검색 결과 중에 실제 그 카드/사건을 보여주는 이미지가 있으면 (기사 대표 이미지,
-  경매 리스팅 사진 등) 그 이미지의 직접 URL(.jpg/.png로 끝나거나 이미지 CDN 링크)을 image_url에
-  넣어. 확실하지 않으면 절대 지어내지 말고 빈 문자열로 둬.
+- source_url은 실제로 그 소식을 다루는 구체적인 기사/경매 리스팅 페이지 URL이어야 해 (해당
+  페이지에서 대표 이미지를 자동으로 가져올 거라서, 카테고리 목록 페이지 말고 개별 게시물/기사
+  URL을 넣어줘).
 
 아래는 목표로 하는 톤/구성 예시야 (문구를 그대로 베끼지 말고 이런 다양함의 정도로 — 실제 포스트는
 매번 웹 검색으로 사실을 새로 확인해서 작성하고, 훅 스타일도 매번 다르게):
@@ -188,8 +213,7 @@ def build_user_prompt(mode: str, recent_entries: list[dict]) -> str:
   "has_news": true 또는 false,
   "topic": "짧은 소재 요약 (한 줄, 중복 체크용)",
   "source_name": "출처 매체/사이트 이름",
-  "source_url": "출처 URL",
-  "image_url": "그 카드/사건을 보여주는 실제 이미지 직접 URL (확실할 때만, 없으면 빈 문자열)",
+  "source_url": "출처의 구체적인 개별 기사/리스팅 URL (카테고리 목록 페이지 금지)",
   "threads_posts": ["포스트1 전체 텍스트", "포스트2 전체 텍스트 (선택, 필요시에만)"]
 }}
 
@@ -231,14 +255,17 @@ def write_outputs(data: dict, mode: str) -> tuple[Path, Path] | None:
     body = "\n\n===POST_SEPARATOR===\n\n".join(p.strip() for p in posts if p.strip())
     out_path.write_text(body, encoding="utf-8")
 
+    source_url = data.get("source_url", "")
+    image_url = fetch_og_image(source_url)
+
     meta_path = REPORTS_DIR / f"{timestamp}-pokemon-meta.json"
     meta_path.write_text(
         json.dumps(
             {
                 "topic": data.get("topic", ""),
                 "source_name": data.get("source_name", ""),
-                "source_url": data.get("source_url", ""),
-                "image_url": data.get("image_url", ""),
+                "source_url": source_url,
+                "image_url": image_url,
                 "mode": mode,
                 "generated_at": datetime.now(KST).isoformat(),
             },
