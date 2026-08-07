@@ -94,7 +94,11 @@ jobs:
             echo
             echo "---"
             echo
-            echo "- **출처**: [$SOURCE_NAME]($SOURCE_URL)"
+            if [ -n "$SOURCE_URL" ]; then
+              echo "- **출처**: [$SOURCE_NAME]($SOURCE_URL)"
+            else
+              echo "- **출처**: $SOURCE_NAME"
+            fi
             echo "- **모드**: $MODE"
             echo "- **생성 시각(KST)**: $GENERATED_AT"
           } > "$BODY_FILE"
