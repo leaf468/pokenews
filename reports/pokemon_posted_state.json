@@ -1,12 +1,6 @@
 {
   "posts": [
     {
-      "topic": "Heritage Auctions에서 Skyridge(PSA Gem Mint 10 전수집) $1,218,750 낙찰",
-      "has_news": true,
-      "hook": "332장 전부 PSA Gem Mint 10이라니, 이게 실화인가요? Heritage Auctions 경매(마감일: 2026-03-27)에서 Pokémon Skyridge Complete Master Set(332장)이 최종 낙찰가 $1,218,750(약 16억 원 상당)에 팔렸어요. 단일 세트가 밀린 프린트+PSA 10로 이렇게 터진 사례, 컬렉터들 사이에서 아직도 회자됩니다. 출처: Heritage Auctions. #포켓몬카드 #Skyridge #포켓몬TCG",
-      "posted_at": "2026-08-07T20:29:54.702935+09:00"
-    },
-    {
       "topic": "일본 포켓몬 팝업 스토어에 얼굴인식 도입 — 초등학생 이상 입장 시 스캔, 1인 1회 정리권",
       "has_news": true,
       "hook": "줄 서 있다가 입구에서 얼굴을 찍히는 광경, 상상은 했지만 실전으로 보니 놀랍네요.😬",
@@ -359,6 +353,12 @@
       "has_news": true,
       "hook": "새벽 알림 울리자 손이 이미 장바구니를 누르고 있었어요.😅",
       "posted_at": "2026-08-11T22:18:33.077302+09:00"
+    },
+    {
+      "topic": "PSA 'Completing' 단계에서 트래킹 안 뜨는 지연으로 인한 커뮤니티 불안·밈",
+      "has_news": true,
+      "hook": "내 심장 대신 PSA 상태창이 뛴다니까요. ",
+      "posted_at": "2026-08-12T00:04:34.362852+09:00"
     }
   ]
 }
