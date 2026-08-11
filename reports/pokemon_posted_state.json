@@ -1,11 +1,6 @@
 {
   "posts": [
     {
-      "topic": "일본 팝업에 얼굴인식 도입 → 스캘핑 차단 논란",
-      "has_news": true,
-      "posted_at": "2026-08-07T19:43:27.024823+09:00"
-    },
-    {
       "topic": "1998 일본 토너먼트 'Trophy Pikachu' 브론즈(3위) PSA 10, Goldin 경매에서 $1,769,000 낙찰(2026-05-17) — 토너먼트 상금 카드의 역대급 값어치",
       "has_news": true,
       "posted_at": "2026-08-07T19:46:24.206843+09:00"
@@ -356,6 +351,12 @@
       "has_news": true,
       "hook": "12팩 뜯었는데 SR·하이퍼 0장 — 근데 이사 상자 뒤지다 'Shadowless Charizard' 한 장이 튀어나왔어요. 😳",
       "posted_at": "2026-08-11T16:17:04.477206+09:00"
+    },
+    {
+      "topic": "Target 매장 포켓몬 카드 재입고 '무작위화' — Excell 드라이버 경로 섞기·매니저 임의 봉인 절단 제보 (Reddit)",
+      "has_news": true,
+      "hook": "줄 서기 플랜 다시 짜세요 — Target이 이제 포켓몬 카드 재입고를 '무작위'로 돌린다는 제보 떴어요. r/PokemonTCGCollectors에선 Excell 드라이버들이 경로 섞고, 매장 매니저가 봉인 잘라 케이스를 나눠놓는다는 경험담이 올라왔습니다. Ascended Heroes·Prismatic SPC 같은 인기 제품이 대상이라고 하니 스캘퍼 잡기용 조치란 건데… 우리에겐 뜻밖의 득템 기회일지도요. 출처: r/PokemonTCGCollectors. #포켓몬카드 #포켓몬TCG #Target",
+      "posted_at": "2026-08-11T17:43:16.328929+09:00"
     }
   ]
 }
