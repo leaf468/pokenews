@@ -1,12 +1,6 @@
 {
   "posts": [
     {
-      "topic": "Target 온라인에 'Pokemon SV 8.5 Prismatic Evolutions Super‑Premium Collection' 재입고(2026-08-11 새벽, $129.99) — 레딧 알림·재고 보고로 커뮤니티 소동",
-      "has_news": true,
-      "hook": "새벽 3시에 뭐 하셨어요? 저는 Target 장바구니랑 싸우고 있었습니다.😅",
-      "posted_at": "2026-08-12T19:13:07.632281+09:00"
-    },
-    {
       "topic": "TPCi, 공식 이벤트 벤더에 그레이딩된 슬랩(PSA/CGC) 판매 금지 통보",
       "has_news": true,
       "hook": "벤더들이 슬랩을 진열대에서 내리기 시작했어요 — 이유는 TPCi의 통보였답니다. 더 포켓몬 컴퍼니 인터내셔널이 NAIC·Worlds·Regionals 같은 공식 행사에서 PSA·CGC 같은 그레이딩된 카드의 ‘판매’를 파트너 벤더에게 금지했다고 해요. 스캘퍼·투자 중심 분위기 제어 목적이라는데, 이벤트 플로어 풍경이 확 바뀔 것 같습니다. #포켓몬카드 #포켓몬TCG #TPCi",
@@ -359,6 +353,12 @@
       "has_news": true,
       "hook": "질문 하나 — PSA 슬랩, 이제 '번호 확인만으로 안심'해도 될까요? PokéSats가 보고한 바에 따르면 최근 새 슬랩 재질이 유연해져서 '열고 카드 갈아넣고 재밀봉'이 가능한 사례가 늘고 있고, 2024년엔 $200만 규모의 가짜 슬랩 사건도 있었대요. SatSlabs 같은 tamper-evident 스티커 제안까지 나오니 슬랩 구매 전엔 PSA cert 대조+케이스 모서리·뒷면 크링클/접합 꼭 체크하세요. 출처: PokéSats",
       "posted_at": "2026-08-17T05:10:24.565962+09:00"
+    },
+    {
+      "topic": "Crafted Auctions 경매에 'Pikachu With Gray Felt Hat' #085 PSA 10 리스팅—현재 입찰 $2,100 / PSA 슬랩 위조 주의보",
+      "has_news": true,
+      "hook": "경매장에서 숨이 멎는 순간이 있었어요 — Crafted Auctions(리스트는 LiveAuctioneers)에 'Pikachu With Gray Felt Hat' #085 PSA 10이 올라왔습니다. 감정가 $3,000–$4,000, 현재 입찰 $2,100(3입찰), 경매 시작은 2026-08-16 1:00 PM EDT(한국시간 2026-08-17 02:00 KST)예요. 인기 프로모라 시선 많이 쏠리는데, 어디까지 뛸지 밤잠 못 이루실 분들 많겠네요. 출처: LiveAuctioneers (Crafted Auctions). #포켓몬카드 #Pikachu #경매",
+      "posted_at": "2026-08-17T07:10:02.847306+09:00"
     }
   ]
 }
