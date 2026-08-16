@@ -1,12 +1,6 @@
 {
   "posts": [
     {
-      "topic": "Target 온라인 재입고 신호(Prismatic Evolutions SPC) + Whatnot '30th Binder' Mew 유출 논쟁",
-      "has_news": true,
-      "hook": "새벽 알람 소리에 눈부터 번쩍하신 분들 있어요? Target에서 'Pokémon SV 8.5 Prismatic Evolutions Super‑Premium Collection'이 $129.99로 온라인 재입고 신호 떴다는 커뮤니티 알림(오늘 새벽 기록)이 돌고 있어요. 보통 이건 3분 컷 패턴이라 알림 못 받으면 손가락만 빨게 되는 전형적 상황… 출처: Target 상품 페이지. #포켓몬카드 #PrismaticEvolutions #포켓몬TCG",
-      "posted_at": "2026-08-12T14:24:00.025299+09:00"
-    },
-    {
       "topic": "Target 온라인 재입고 알림(Prismatic Evolutions SPC)에 새벽 결제·알람 밈",
       "has_news": true,
       "hook": "새벽 알림 하나에 정신줄 놓은 사람 여기요—Target에서 'Pokémon SV 8.5 Prismatic Evolutions Super‑Premium Collection'이 $129.99로 다시 뜬다는 알림 받고 손이 장바구니로, 머리는 출근 모드로... 결제 누르고 나서야 '아, 오늘 왜 이렇게 피곤해요'라고 상사에게 답장한 내 모습 보면서 웃음만 나네요. 새벽 알림+장바구니 습관, 이젠 수집가들의 직장인 생존 스킬인 듯😅 #포켓몬카드 #PrismaticEvolutions #포켓몬TCG",
@@ -359,6 +353,12 @@
       "has_news": true,
       "hook": "행사장에선 조용한 전쟁이 벌어졌어요 — 부스 앞에서 사람들 핸드폰으로 PSA·eBay 시세를 번쩍번쩍 확인하며 즉석 흥정이 시작되는 장면, Puyallup Washington State Card Show(8/15)에서 진짜 많이 목격했습니다. ‘한 번만 확인하고 올게요’가 30초 만에 ‘그 가격이면 가질게요’로 바뀌는 건 이제 쇼의 기본 루틴 같아요 😅 현장 스트리밍하듯 가격창 열어보는 분들, 여러분도 공감하시죠? 출처: Washington State Card Show",
       "posted_at": "2026-08-16T23:29:25.747693+09:00"
+    },
+    {
+      "topic": "일본 팝업 매장에 얼굴인식 도입 — 5개 임시 팝업(7/31–8/16) 시범 운영, 스케일핑 차단 목적",
+      "has_news": true,
+      "hook": "줄 서기 전에 얼굴부터 찍으라네요? 일본에서 포켓몬 카드 팝업 5곳(기간: 7/31–8/16) 한정으로 입장·대기권 수령 전에 얼굴인식 스캔을 도입했다고 합니다. 목적은 ‘1인 1입장’ 보장과 리셀러(스케일퍼) 차단이라는데, Storm Emerald(메가 확장) 발매 연계 시범이라 반응이 꽤 뜨거워요. 개인정보 보관 기간 같은 부분은 아직 논쟁 중. 출처: Hypebeast #포켓몬카드 #팝업 #스케일핑",
+      "posted_at": "2026-08-17T01:11:37.467889+09:00"
     }
   ]
 }
