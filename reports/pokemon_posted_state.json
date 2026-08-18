@@ -1,12 +1,6 @@
 {
   "posts": [
     {
-      "topic": "최근 몇 시간 뚜렷한 신규 브레이킹 없음 — 대신 커뮤니티 공감형 밈·후회담 포스트 작성",
-      "has_news": true,
-      "hook": "상황: 부모님 집 다락방에서 박스 하나 발견됐대요. 친구가 3년 전에 베이스 1st Edition Charizard 한 장을 중고로 50만원에 팔아버렸는데요, 어제 같은 등급 매물 보니 1,500만 원대 찍혀서 지금 등짝 스매싱 각이라는 얘기입니다. 그때는 '그냥 오래된 종이'였던 내 판단, 어디 갔죠… 😅 #포켓몬카드 #Charizard1st #후회담",
-      "posted_at": "2026-08-14T05:30:02.415336+09:00"
-    },
-    {
       "topic": "Target에 'Pokemon SV 8.5 Prismatic Evolutions Super‑Premium Collection' 온라인 재입고 알림(레딧 자동포스트, 최근 게시)",
       "has_news": true,
       "hook": "새벽 알람 하나에 심장이 뛴다 — 레딧 자동 알림으로 ‘Pokemon SV 8.5 Prismatic Evolutions Super‑Premium Collection’이 Target에 $129.99로 다시 올라왔대요 (타임스탬프: 04:35:55 AM EST). 자동화된 리포트지만 현실은 여전히 ‘3분컷’ 전쟁. 알람 못 받으면 손가락만 빨아요… 출처: Reddit (r/PokemonDropNotify) #포켓몬카드 #PrismaticEvolutions #Target",
@@ -359,6 +353,12 @@
       "has_news": true,
       "hook": "아무도 안 믿겠지만… 주말에 냉동실 열었더니 내 PSA 10 'Shiny Charizard VMAX (Shining Fates)'가 냉동 삼겹살 위에 얹혀 있었어요. 🤦‍♂️",
       "posted_at": "2026-08-18T15:53:02.182542+09:00"
+    },
+    {
+      "topic": "최근 뚜렷한 속보 없음 — 대신 수집가 공감형 밈 / 후회담 게시물 2개 제공",
+      "has_news": true,
+      "hook": "부스터 뜯기 전에 무슨 짓 하세요? 저는 늘 손목시계 벗고 조용히 창문 닫고 집중 모드로 들어갑니다. 'Shiny Charizard VMAX (Shining Fates)' 나오길 바라며 12팩을 뜯을 때의 의식이 이게 다예요… 확률표 들여다보다가 결국 한 팩 더 사는 제 모습은 여전하네요. 같은 징크스 쓰시는 분, 손 들어보세요. #포켓몬카드 #포켓몬TCG #뽑기운",
+      "posted_at": "2026-08-18T17:22:33.141801+09:00"
     }
   ]
 }
