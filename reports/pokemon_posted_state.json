@@ -1,12 +1,6 @@
 {
   "posts": [
     {
-      "topic": "Prismatic Evolutions SPC 부스터 12팩에서 SR 0장·대신 Shiny Charizard VSTAR 1장 건짐한 자학형 개봉담",
-      "has_news": true,
-      "hook": "덜컹—지갑이 잠깐 멈췄어요. Prismatic Evolutions SPC에서 부스터 12팩 뜯었더니 SR이 0장이고, 대신 Shiny Charizard VSTAR 한 장이 웃고 있네요. 결산표엔 120,300원 찍혔고요. 가족한테는 \"이건 투자예요\"라 했지만 집에 와서 카드 앞에서 한참 멍… 다음 달은 라면 대신 카드 끊어볼게요(아마도). 😅",
-      "posted_at": "2026-08-15T12:44:38.037542+09:00"
-    },
-    {
       "topic": "Seattle Trading Card Con 현장 진행 + Target Prismatic SPC 재입고 기대감 + Ascended Heroes 'God Pack' 생일 당첨 인증",
       "has_news": true,
       "hook": "호텔 로비가 카드시장 됐습니다 — 시애틀에서 Trading Card Con(8/14–8/16, DoubleTree by Hilton Seattle Airport) 현장 소식이에요. 벤더 250+ 테이블, Pokémon TCG 패널·Trade Night·Voice Actor Alley까지 진행 중이라 현장 스냅·득템 인증이 폭주 중입니다. 현장 사진 올라오면 바로 퍼와드릴게요. 출처: Trading Card Con. #포켓몬카드 #TradingCardCon #포켓몬TCG",
@@ -359,6 +353,12 @@
       "has_news": true,
       "hook": "오늘 중고 거래 보기 전 잠깐 멈추세요 — 몇 시간 새 r/IsMyPokemonCardFake에 '이거 진짜냐' 사진이 폭주하고 있어요. 커뮤니티에서 공통 지적되는 포인트는 뒷면 색·엣지(단면)·HP 폰트 등 기본 요소들이에요. 중고 거래하실 땐 뒷면·엣지·저작권(C) 클로즈업 사진 먼저 요구하세요. 출처: Reddit r/IsMyPokemonCardFake. #포켓몬카드 #가품주의 #포켓몬TCG",
       "posted_at": "2026-08-19T19:18:06.141996+09:00"
+    },
+    {
+      "topic": "Pokémon Center 주문 취소·CEVA Logistics 사이버공격으로 고객 정보 노출 가능성 보도(8/18)",
+      "has_news": true,
+      "hook": "주문 취소 메일 한 통에 덕질 계획이 흔들릴 수 있어요 — 혹시 여러분도 받으셨나요? 이번에 Pokémon Center(영국·독일)가 CEVA Logistics에 대한 사이버 공격(7월 30일) 영향으로 일부 주문을 취소했다더라고요. 이름·주소·이메일·주문 내역이 노출됐을 가능성이 있다고 공지했으니, 이메일·계정·배송주소 한 번씩 꼭 확인하시고 재주문 대기하셔요. (계정·결제 정보는 안전하다고 합니다.) 출처: TechRadar ⚠️ #포켓몬카드 #포켓몬TCG #PokemonCenter",
+      "posted_at": "2026-08-19T21:57:18.279070+09:00"
     }
   ]
 }
