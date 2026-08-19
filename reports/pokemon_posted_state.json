@@ -1,12 +1,6 @@
 {
   "posts": [
     {
-      "topic": "Seattle Trading Card Con 현장 진행 + Target Prismatic SPC 재입고 기대감 + Ascended Heroes 'God Pack' 생일 당첨 인증",
-      "has_news": true,
-      "hook": "호텔 로비가 카드시장 됐습니다 — 시애틀에서 Trading Card Con(8/14–8/16, DoubleTree by Hilton Seattle Airport) 현장 소식이에요. 벤더 250+ 테이블, Pokémon TCG 패널·Trade Night·Voice Actor Alley까지 진행 중이라 현장 스냅·득템 인증이 폭주 중입니다. 현장 사진 올라오면 바로 퍼와드릴게요. 출처: Trading Card Con. #포켓몬카드 #TradingCardCon #포켓몬TCG",
-      "posted_at": "2026-08-15T13:19:36.236008+09:00"
-    },
-    {
       "topic": "Ascended Heroes 부스터 19번째 팩에서 'God Pack' 당첨 — 체코 유저가 19번째 생일에 뽑음",
       "has_news": true,
       "hook": "19번째 팩에 'God Pack'이라니…생일 복권 터졌어요 🎂",
@@ -359,6 +353,12 @@
       "has_news": true,
       "hook": "주문 취소 메일 한 통에 덕질 계획이 흔들릴 수 있어요 — 혹시 여러분도 받으셨나요? 이번에 Pokémon Center(영국·독일)가 CEVA Logistics에 대한 사이버 공격(7월 30일) 영향으로 일부 주문을 취소했다더라고요. 이름·주소·이메일·주문 내역이 노출됐을 가능성이 있다고 공지했으니, 이메일·계정·배송주소 한 번씩 꼭 확인하시고 재주문 대기하셔요. (계정·결제 정보는 안전하다고 합니다.) 출처: TechRadar ⚠️ #포켓몬카드 #포켓몬TCG #PokemonCenter",
       "posted_at": "2026-08-19T21:57:18.279070+09:00"
+    },
+    {
+      "topic": "온라인 경매에서 Mega Charizard X ex(PSA10) 입찰 조작 의심 — 무거래 계정 고액 입찰·결제 실패 패턴",
+      "has_news": true,
+      "hook": "경매 보다가 등골 서늘했어요 — '최종 입찰자 거래 0건'이 계속 뜨네요. 최근 몇몇 온라인 경매에서 Mega Charizard X ex PSA10에 무거래(또는 새 계정)로 고액 입찰이 붙고 결제 실패로 낙찰이 무효되는 사례가 Reddit r/PokeInvesting(오늘)에서 지적됐어요. 결과적으로 ‘판매 히스토리’만 쌓여 시세처럼 보이게 만든다는 의심. 온라인으로 비싸게 사기 전엔 최종 입찰자 계정·결제 완료 여부·Buy It Now 가격 비교 꼭 확인하세요. 출처: Reddit r/PokeInvesting",
+      "posted_at": "2026-08-19T23:40:16.803929+09:00"
     }
   ]
 }
