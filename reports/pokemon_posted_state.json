@@ -1,12 +1,6 @@
 {
   "posts": [
     {
-      "topic": "Washington State Card Show(8/15, Puyallup) - 포켓몬 카드 벤더·트레이드 쇼 진행",
-      "has_news": true,
-      "hook": "푸흡—오늘 Puyallup에서 카드 쇼가 터졌어요. Washington State Card Show가 Washington State Fair Event Center에서 8/15 단일 일정으로 열리고, 포켓몬 카드 섹션도 꽉 찼다네요. 벤더 테이블·박스·팩·트레이드 존까지 있으니 시애틀 근교 분들 현장 스냅·득템 인증 올라오면 바로 퍼와드릴게요. 출처: Washington State Fair. #포켓몬카드 #워싱턴카드쇼 #Puyallup",
-      "posted_at": "2026-08-15T19:11:49.182548+09:00"
-    },
-    {
       "topic": "배우자에게 카드 지출 들켜버린 자백 — Prismatic Evolutions SPC·Ascended Heroes 합계 $1,200 지출 에피소드(밈/공감)",
       "has_news": true,
       "hook": "1,200달러 쓴 내 카드 영수증을 배우자가 발견했을 때의 침묵은…묘기 수준이에요.😶",
@@ -359,6 +353,12 @@
       "has_news": true,
       "hook": "이번 달 팩 결산 보고: Celebrations 부스터 12팩 뜯었더니 SR·FA·Full Art 전부 0장, 대신 반짝이는 Psyduck 호일 한 장이 위안이라네요. 확률표 어디 갔는지 묻고 싶고, 지갑은 텅인데 손은 이미 다음 박스 클릭 중… ‘투자’라 우기며 카드 봉투에 기대 거는 제 모습, 공감하시면 좋아요. #포켓몬카드 #포켓몬TCG #뽑기운",
       "posted_at": "2026-08-20T03:18:19.939712+09:00"
+    },
+    {
+      "topic": "Pokémon Center 주문 취소·CEVA 물류 사이버공격 영향(주문·개인정보 노출 우려) — 커뮤니티는 언박싱·그레이딩 논쟁도 활발",
+      "has_news": true,
+      "hook": "7월 30일부터 시작된 CEVA 물류 사이버공격 여파로 Pokémon Center(영국·독일 고객)에서 일부 주문이 취소되고 이름·주소·이메일·주문내역 노출 가능성이 있다는 보도가 떴어요(TechRadar, 8/19). 결제정보는 안전하다고 하지만 주문 취소 메일 받으신 분은 계정·이메일·배송지·환불 안내 꼭 확인하시고, 재주문 전엔 주문기록 스크린샷 챙기세요. #포켓몬카드 #PokemonCenter #보안",
+      "posted_at": "2026-08-20T05:14:45.331800+09:00"
     }
   ]
 }
