@@ -1,12 +1,6 @@
 {
   "posts": [
     {
-      "topic": "PSA 슬랩 유연화로 인한 스왑·재밀봉 위험 경고 — PokéSats 보도",
-      "has_news": true,
-      "hook": "질문 하나 — PSA 슬랩, 이제 '번호 확인만으로 안심'해도 될까요? PokéSats가 보고한 바에 따르면 최근 새 슬랩 재질이 유연해져서 '열고 카드 갈아넣고 재밀봉'이 가능한 사례가 늘고 있고, 2024년엔 $200만 규모의 가짜 슬랩 사건도 있었대요. SatSlabs 같은 tamper-evident 스티커 제안까지 나오니 슬랩 구매 전엔 PSA cert 대조+케이스 모서리·뒷면 크링클/접합 꼭 체크하세요. 출처: PokéSats",
-      "posted_at": "2026-08-17T05:10:24.565962+09:00"
-    },
-    {
       "topic": "Crafted Auctions 경매에 'Pikachu With Gray Felt Hat' #085 PSA 10 리스팅—현재 입찰 $2,100 / PSA 슬랩 위조 주의보",
       "has_news": true,
       "hook": "경매장에서 숨이 멎는 순간이 있었어요 — Crafted Auctions(리스트는 LiveAuctioneers)에 'Pikachu With Gray Felt Hat' #085 PSA 10이 올라왔습니다. 감정가 $3,000–$4,000, 현재 입찰 $2,100(3입찰), 경매 시작은 2026-08-16 1:00 PM EDT(한국시간 2026-08-17 02:00 KST)예요. 인기 프로모라 시선 많이 쏠리는데, 어디까지 뛸지 밤잠 못 이루실 분들 많겠네요. 출처: LiveAuctioneers (Crafted Auctions). #포켓몬카드 #Pikachu #경매",
@@ -359,6 +353,12 @@
       "has_news": true,
       "hook": "알람하나만 설정하세요 — 오늘(8/21) 오후 1시 PDT(한국시간 8/22 새벽 5시)에 2026 Pokémon World Championships Preview Show가 생중계됩니다. 이번 프리뷰에는 'Pokémon Pokopia 특별 발표'가 포함된다고 공식 힌트가 떴고, Pokémon Center는 Worlds·PokémonXP 전용 플러시(왕관 피카츄·우주복 피카츄·Charizard·Kirlia)와 현장 한정 프로모 카드(Paradise Resort, Pikachu, Rayquaza 등)를 사전 공개했어요. 현장 굿즈·디지털 보상 모두 체크해두세요. 출처: Pokémon.com · VGC 🎥 #포켓몬카드 #포켓몬TCG #PokemonWorlds",
       "posted_at": "2026-08-21T17:25:43.590871+09:00"
+    },
+    {
+      "topic": "2026 Worlds Preview Show(8/21) — Pokopia 특별 발표·플러시 공개·월즈 프로모·현장 구매 유의",
+      "has_news": true,
+      "hook": "이거 안 보면 손해일지도 몰라요 — 2026 Pokémon World Championships Preview Show가 8/21(금) 1:00 PM PDT(한국시간 8/22 새벽 5시)에 스트리밍됩니다. 이번 프리뷰에서 'Pokémon Pokopia' 특별 발표가 예고됐고, 플러시(챔피언 피카츄·XP 우주복 피카츄·Charizard·Kirlia) 라인업이 미리 공개됐어요. 참고로 Worlds 프로모는 두 갈래: Paradise Resort는 출전 선수 전용이고, 일반 참가자용 'Worlds 2026 Pikachu'는 8/21~8/30 진행되는 Play! Pokemon 가맹 매장 월즈 셀러브레이션 토너먼트에서 획득 가능하니 지역 매장에 예약 먼저 문의하세요. 출처: The Card Shop Finder. #포켓몬카드 #포켓몬TCG #Pokopia",
+      "posted_at": "2026-08-21T19:19:14.337757+09:00"
     }
   ]
 }
