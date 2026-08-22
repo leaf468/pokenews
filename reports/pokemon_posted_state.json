@@ -1,12 +1,6 @@
 {
   "posts": [
     {
-      "topic": "Mimikyu VMAX(069/172) 앞면 HP가 '8630'으로 찍혀 있다는 게시글 — 가품/오타 논란",
-      "has_news": true,
-      "hook": "사진 한 장에 커뮤니티가 시끌하네요 — Mimikyu VMAX (069/172, Brilliant Stars 스페인어판) 앞면 HP가 '8630'으로 찍혀 있다는 글이 r/IsMyPokemonCardFake에 올라왔어요. 정상 표기는 HP 300이라서요. 글쓴이는 Pokémon 공식 DB·TCGplayer·PSA까지 확인했다는데, 가짜 프린트인지 희귀 프린트 오류인지 의견이 난무 중입니다. 보유자분들, 종이 결·홀로 패턴·폰트·뒷면 색감 꼭 체크해 보세요. 출처: r/IsMyPokemonCardFake 😬",
-      "posted_at": "2026-08-17T17:30:50.686833+09:00"
-    },
-    {
       "topic": "Pikachu & Zekrom 태그팀 PSA 10 단기간 급등 (커뮤니티·eBay 거래 포착)",
       "has_news": true,
       "hook": "하루 만에 값이 두 배? 이거 진짜요. 'Pikachu & Zekrom' (Team Up / SM 계열) PSA 10이 어제까진 약 $700대였는데, Reddit·eBay·RIPS에서 $1.5k~$3k대 거래들이 연달아 뜨면서 커뮤니티가 발칵 뒤집혔어요. 원인론으론 태그팀 인기 재점화+PSA10 공급 부족+리셀러 수요 겹침이라는데… 내 바인더 속 것도 눈물나네요. 출처: Reddit r/PokeInvesting",
@@ -359,6 +353,12 @@
       "has_news": true,
       "hook": "경계 타이머 켜요 — '진짜 같은 가짜'가 늘고 있대요. PSA 2025 Fraud Report를 정리한 자료들과 CardCollapse 집계에 따르면 위조·변조 사례가 눈에 띄게 증가했고(일부 보도는 2025년 약 $200M대 규모 언급), 고액 카드·한정 프로모 위주로 리스크가 높대요. 팩 싸게 판다고 덥석이면 안 되는 시대, 사진·증빙·직거래·PSA Cert 대조 먼저 해요. 출처: CardCollapse·PSA #포켓몬카드 #사기주의 #포켓몬TCG",
       "posted_at": "2026-08-22T07:13:04.012952+09:00"
+    },
+    {
+      "topic": "월즈 굿즈(플러시·프로모) 결제 숨기다 들킨 수집가 짤",
+      "has_news": true,
+      "hook": "출근 가방에서 영수증이 툭 튀어나왔는데, 그게 '공과금'이 아니라 내가 월즈 플러시·프로모 예약비 350달러 결제 내역이었어요.😭",
+      "posted_at": "2026-08-22T10:35:35.791011+09:00"
     }
   ]
 }
