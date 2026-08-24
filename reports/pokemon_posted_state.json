@@ -1,12 +1,6 @@
 {
   "posts": [
     {
-      "topic": "Pokémon Center 주문 취소·CEVA 물류 사이버공격 영향(주문·개인정보 노출 우려) — 커뮤니티는 언박싱·그레이딩 논쟁도 활발",
-      "has_news": true,
-      "hook": "7월 30일부터 시작된 CEVA 물류 사이버공격 여파로 Pokémon Center(영국·독일 고객)에서 일부 주문이 취소되고 이름·주소·이메일·주문내역 노출 가능성이 있다는 보도가 떴어요(TechRadar, 8/19). 결제정보는 안전하다고 하지만 주문 취소 메일 받으신 분은 계정·이메일·배송지·환불 안내 꼭 확인하시고, 재주문 전엔 주문기록 스크린샷 챙기세요. #포켓몬카드 #PokemonCenter #보안",
-      "posted_at": "2026-08-20T05:14:45.331800+09:00"
-    },
-    {
       "topic": "CardTrack 2026-08 시장리포트: Phione +88.3% 급등·Shining Tyranitar -88.1% 폭락 — 포켓몬 카드 시장 큰 변동성",
       "has_news": true,
       "hook": "88.3% — 숫자 하나에 눈이 확 떠졌어요. CardTrack 8월 리포트에 따르면 SM Black Star Promo 'Phione'이 한 달 새 +88.3%로 현재 $109까지 올랐대요. 반면 같은 리포트엔 Neo Destiny 'Shining Tyranitar'가 한 달에 -88.1%로 $508까지 곤두박질쳤다고… 포켓몬 시장, 한쪽에선 불이 붙고 다른 쪽에선 하락장 펑펑. 지갑 단단히 조이시길. 출처: CardTrack. #포켓몬카드 #포켓몬TCG #시세변동",
@@ -359,6 +353,12 @@
       "has_news": true,
       "hook": "프리세일에 $390 찍었던 Mega Darkrai ex SIR, 37일 만에 약 $219.61로 떨어졌대요 — 약 44% 하락. 얘기인즉슨 '사람들이 관심 끊겼다'가 아니라 '줄 서서 먼저 받으려는 프리미엄'이 깎였다는 거예요. 봉인 제품은 여전히 매번 60초 내 완판이라 시장 자체는 건재. 결론: 가격은 ‘줄서기 비용’에 민감하니 급등·급락 보이면 출처(트래커 기준) 먼저 체크하는 습관 추천. 출처: PureGrail. 😏 #포켓몬카드 #PitchBlack #포켓몬TCG",
       "posted_at": "2026-08-24T18:54:43.510124+09:00"
+    },
+    {
+      "topic": "BidSquare 라이브 경매 'Pokemon Slabs, Packs and Boxes Part 2' — Zacian V(CG C9) 등 슬랩·봉인팩 다수 출품, 현재 경매 진행 중",
+      "has_news": true,
+      "hook": "라이브 경매 창에 빨간 불 들어왔어요 — 'Pokemon Slabs, Packs and Boxes Part 2' 지금 진행 중입니다. Lot 100은 Reshiram V (2022) CGC 10, Lot 146은 Zacian V (2020) CGC 9 등급으로 시작가가 $40부터 걸려 있어요. 슬랩·PSA·CGC Gem Mint들에 봉인박스·부스터팩까지 섞여 나옵니다. 출처: BidSquare. 입찰하실 분들은 이미지·등급 설명·배송 정책 꼭 확인하세요. #포켓몬카드 #포켓몬TCG #경매",
+      "posted_at": "2026-08-24T19:27:28.268252+09:00"
     }
   ]
 }
