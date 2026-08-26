@@ -12,10 +12,10 @@ on:
           - scheduled
           - breaking
   schedule:
-    # 정기 발행 6회 (한국시간 09/12/15/18/21/23시 = UTC 0/3/6/9/12/14시)
-    - cron: '0 0,3,6,9,12,14 * * *'
-    # 그 사이는 2시간 간격으로 속보 체크 (별도 cron이라 지연되어도 정기 슬롯과 안 섞임)
-    - cron: '0 2,4,8,10,16,18,20,22 * * *'
+    # 정기 발행 3회 (한국시간 09/15/21시 = UTC 0/6/12시)
+    - cron: '0 0,6,12 * * *'
+    # 속보 체크 3회 (한국시간 12/18/24시 = UTC 3/9/15시) — 별도 cron이라 지연돼도 정기 슬롯과 안 섞임
+    - cron: '0 3,9,15 * * *'
 
 jobs:
   post:
@@ -31,6 +31,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: scripts/requirements.txt
 
       - name: Install dependencies
         run: pip install -r scripts/requirements.txt
@@ -45,7 +47,7 @@ jobs:
             # GitHub Actions 스케줄은 부하로 최대 1시간 가까이 지연될 수 있어서,
             # date -u +%H로 판정하면 지연된 정기 슬롯이 breaking으로 잘못 떨어짐.
             case "${{ github.event.schedule }}" in
-              '0 0,3,6,9,12,14 * * *') echo "mode=scheduled" >> "$GITHUB_OUTPUT" ;;
+              '0 0,6,12 * * *') echo "mode=scheduled" >> "$GITHUB_OUTPUT" ;;
               *) echo "mode=breaking" >> "$GITHUB_OUTPUT" ;;
             esac
           fi
