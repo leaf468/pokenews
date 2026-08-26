@@ -4,9 +4,13 @@
 파일 안에 ===POST_SEPARATOR=== 로 여러 포스트가 나뉘어 있으면
 첫 포스트를 올리고 나머지는 그 글의 댓글(reply)로 스레드를 이어붙인다.
 
+두 번째 인자로 meta.json 경로를 주면 그 안의 image_url을 읽어 첫 포스트에 이미지를 첨부한다
+(우리 채널은 모든 소식에 이미지를 함께 올리는 걸 원칙으로 함). 이미지가 없으면 텍스트로만 올린다.
+
 THREADS_ACCESS_TOKEN / THREADS_USER_ID 가 없으면 조용히 건너뛴다.
 """
 
+import json
 import os
 import sys
 import time
@@ -26,17 +30,36 @@ def load_posts(file_path: str) -> list[str]:
     return posts
 
 
+def load_image_url(meta_path: str | None) -> str:
+    """meta.json에서 image_url을 읽는다. 인자가 없거나 파일이 없으면 빈 문자열."""
+    if not meta_path or not Path(meta_path).exists():
+        return ""
+    try:
+        meta = json.loads(Path(meta_path).read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return ""
+    return (meta.get("image_url") or "").strip()
+
+
 def create_and_publish(
-    text: str, access_token: str, user_id: str, reply_to_id: str | None = None
+    text: str,
+    access_token: str,
+    user_id: str,
+    reply_to_id: str | None = None,
+    image_url: str = "",
 ) -> str:
     if len(text) > THREADS_CHAR_LIMIT:
         text = text[: THREADS_CHAR_LIMIT - 1] + "…"
 
     create_data = {
-        "media_type": "TEXT",
         "text": text,
         "access_token": access_token,
     }
+    if image_url:
+        create_data["media_type"] = "IMAGE"
+        create_data["image_url"] = image_url
+    else:
+        create_data["media_type"] = "TEXT"
     if reply_to_id:
         create_data["reply_to_id"] = reply_to_id
 
@@ -63,10 +86,12 @@ def create_and_publish(
 
 def main() -> None:
     if len(sys.argv) < 2:
-        print("사용법: python post_to_threads.py <threads_텍스트_파일>")
+        print("사용법: python post_to_threads.py <threads_텍스트_파일> [meta_json_파일]")
         sys.exit(1)
 
     file_path = sys.argv[1]
+    meta_path = sys.argv[2] if len(sys.argv) > 2 else None
+    image_url = load_image_url(meta_path)
     access_token = os.getenv("THREADS_ACCESS_TOKEN")
     user_id = os.getenv("THREADS_USER_ID")
 
@@ -84,10 +109,15 @@ def main() -> None:
         print(f"⚠️  {e}")
         sys.exit(0)
 
-    print(f"🧵 Threads 게시 시작 ({len(posts)}개 포스트)")
+    print(
+        f"🧵 Threads 게시 시작 ({len(posts)}개 포스트)"
+        + (f" · 이미지 첨부: {image_url}" if image_url else " · 이미지 없음(텍스트)")
+    )
 
     try:
-        first_id = create_and_publish(posts[0], access_token, user_id)
+        first_id = create_and_publish(
+            posts[0], access_token, user_id, image_url=image_url
+        )
         print(f"✅ 게시 완료: {first_id}")
 
         last_id = first_id
