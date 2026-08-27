@@ -334,7 +334,9 @@ def generate(mode: str) -> dict:
         text = text.strip("`")
         if text.startswith("json"):
             text = text[4:]
-    return json.loads(text)
+    # strict=False: 모델이 문자열 값 안에 이스케이프 안 된 줄바꿈 등 제어문자를 그대로
+    # 넣는 경우가 있어서, 엄격 모드면 "Invalid control character" 에러로 파싱 자체가 죽는다.
+    return json.loads(text, strict=False)
 
 
 def write_outputs(data: dict, mode: str) -> tuple[Path, Path] | None:
