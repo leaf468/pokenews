@@ -12,10 +12,10 @@ on:
           - scheduled
           - breaking
   schedule:
-    # 정기 발행 3회 (한국시간 09/15/21시 = UTC 0/6/12시)
-    - cron: '0 0,6,12 * * *'
-    # 속보 체크 3회 (한국시간 12/18/24시 = UTC 3/9/15시) — 별도 cron이라 지연돼도 정기 슬롯과 안 섞임
-    - cron: '0 3,9,15 * * *'
+    # 정기 발행 4회 (한국시간 09/13/17/21시 = UTC 0/4/8/12시)
+    # Actions 무료 한도 절약을 위해 속보 체크 cron은 없앰. breaking 모드는
+    # workflow_dispatch로 수동 실행 시에만 사용 (inputs.mode에서 선택 가능).
+    - cron: '0 0,4,8,12 * * *'
 
 jobs:
   post:
@@ -43,13 +43,8 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "mode=${{ inputs.mode }}" >> "$GITHUB_OUTPUT"
           else
-            # 실행 시각(wall clock)이 아니라 어느 cron이 실제로 트리거했는지로 판정.
-            # GitHub Actions 스케줄은 부하로 최대 1시간 가까이 지연될 수 있어서,
-            # date -u +%H로 판정하면 지연된 정기 슬롯이 breaking으로 잘못 떨어짐.
-            case "${{ github.event.schedule }}" in
-              '0 0,6,12 * * *') echo "mode=scheduled" >> "$GITHUB_OUTPUT" ;;
-              *) echo "mode=breaking" >> "$GITHUB_OUTPUT" ;;
-            esac
+            # schedule 트리거는 이제 정기 발행 cron 하나뿐.
+            echo "mode=scheduled" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Generate Pokemon card content
