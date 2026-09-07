@@ -8,9 +8,12 @@ OpenAI Responses API의 web_search 툴로 "최신" 소식/일정을 검색한 �
 한국 소식/이벤트(신팩 발매일, 카드쇼, 팝업스토어 등)를 최우선으로 하고, 해외 주요 소식은
 간헐적으로 섞는다.
 
-옛날 뉴스를 최신인 것처럼 발행하지 않도록, 모델이 응답한 published_date를 검증해서
-최근(MAX_NEWS_AGE_DAYS 이내)이거나 미래 일정인 경우에만 파일을 만든다. 그 외에는
-파일을 만들지 않고 조용히 종료한다.
+옛날 뉴스를 최신인 것처럼 발행하지 않도록, published_date를 검증해서 최근
+(MAX_NEWS_AGE_DAYS 이내)이거나 미래 일정인 경우에만 파일을 만든다. 그 외에는
+파일을 만들지 않고 조용히 종료한다. 모델이 자체 보고하는 published_date는
+착각·오래된 기사 재검색 등으로 틀릴 수 있으므로, 가능하면 출처 페이지의 실제
+발행일 메타태그(article:published_time 등)를 fetch해서 확인하고, 모델의
+주장보다 그 실측값을 우선한다 (image_url을 og:image로 검증하는 것과 같은 원리).
 
 모든 소식에 이미지를 붙이기 위해, 출처 페이지에 대표 이미지(og:image/twitter:image)가
 없으면 OpenAI 이미지 생성 API로 뉴스톤 이미지를 만들어 첨부한다.
@@ -50,12 +53,40 @@ IMAGE_META_RES = [
     ),
 ]
 
+# 실제 발행일 후보 메타태그들 (사이트마다 관례가 달라 여러 개를 순서대로 시도)
+DATE_META_RES = [
+    re.compile(
+        r'<meta[^>]+property=["\']article:published_time["\'][^>]+content=["\']([^"\']+)["\']',
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+property=["\']article:published_time["\']',
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r'<meta[^>]+(?:name|itemprop)=["\']datePublished["\'][^>]+content=["\']([^"\']+)["\']',
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r'<meta[^>]+name=["\']pubdate["\'][^>]+content=["\']([^"\']+)["\']',
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r'<meta[^>]+name=["\']sailthru\.date["\'][^>]+content=["\']([^"\']+)["\']',
+        re.IGNORECASE,
+    ),
+    re.compile(r'"datePublished"\s*:\s*"([^"]+)"', re.IGNORECASE),
+    re.compile(r'<time[^>]+datetime=["\']([^"\']+)["\']', re.IGNORECASE),
+]
 
-def fetch_og_image(url: str) -> str:
-    """출처 페이지의 og:image(없으면 twitter:image) 메타태그에서 실제 대표 이미지 URL을 가져온다.
-    모델이 이미지 URL을 지어내지 않도록, 웹 검색 결과가 아니라 실제 페이지를 fetch해서 확인한다."""
+
+def fetch_page_meta(url: str) -> dict:
+    """출처 페이지를 한 번 fetch해서 대표 이미지(og:image 등)와 실제 발행일 메타태그를
+    함께 추출한다. 모델이 이미지 URL이나 발행일을 지어내거나 착각하지 않도록, 웹 검색
+    결과가 아니라 실제 페이지 내용을 근거로 확인한다. 못 찾으면 각각 빈 문자열."""
+    result = {"image_url": "", "published_date": ""}
     if not url:
-        return ""
+        return result
     try:
         resp = requests.get(
             url,
@@ -64,25 +95,33 @@ def fetch_og_image(url: str) -> str:
         )
         resp.raise_for_status()
         html = resp.text[:300_000]
+
         for pattern in IMAGE_META_RES:
             match = pattern.search(html)
             if match:
-                # 상대 경로일 수 있으니 절대 URL로 변환
-                return urljoin(resp.url, match.group(1).strip())
-        return ""
+                result["image_url"] = urljoin(resp.url, match.group(1).strip())
+                break
+
+        for pattern in DATE_META_RES:
+            match = pattern.search(html)
+            if match:
+                result["published_date"] = match.group(1).strip()[:10]
+                break
+
+        return result
     except (requests.RequestException, UnicodeDecodeError):
-        return ""
+        return result
 
 
-def is_fresh(published_date: str) -> bool:
+def is_fresh(published_date: str) -> bool | None:
     """소식의 기준 날짜가 최근(MAX_NEWS_AGE_DAYS 이내)이거나 아직 다가올 미래 날짜인지 검사한다.
-    날짜를 파싱할 수 없으면 판단을 보류하고 True를 반환한다(과도한 스킵 방지)."""
+    날짜를 파싱할 수 없으면 판단 불가를 의미하는 None을 반환한다 (호출부에서 처리)."""
     if not published_date:
-        return True
+        return None
     try:
         parsed = datetime.strptime(published_date.strip()[:10], "%Y-%m-%d").date()
     except ValueError:
-        return True
+        return None
     today = datetime.now(KST).date()
     if parsed >= today:  # 오늘 또는 미래 일정
         return True
@@ -344,10 +383,29 @@ def write_outputs(data: dict, mode: str) -> tuple[Path, Path] | None:
         print(f"ℹ️  [{mode}] 새로 올릴 만한 소식이 없어요. 이번 실행은 건너뜁니다.")
         return None
 
-    published_date = data.get("published_date", "")
-    if not is_fresh(published_date):
+    source_url = data.get("source_url", "")
+    model_claimed_date = data.get("published_date", "")
+    page_meta = fetch_page_meta(source_url)
+    page_date = page_meta["published_date"]
+
+    # 실제 페이지에서 발행일을 확인했으면 그걸 우선한다 (모델 자체 보고보다 신뢰도 높음).
+    # 페이지에서 못 찾았으면 모델이 보고한 날짜로 대체 검증한다.
+    if page_date and is_fresh(page_date) is not None:
+        effective_date, date_source = page_date, "page"
+    else:
+        effective_date, date_source = model_claimed_date, "model"
+
+    freshness = is_fresh(effective_date)
+    if page_date and model_claimed_date and page_date != model_claimed_date[:10]:
         print(
-            f"ℹ️  [{mode}] 소식 기준일이 오래됐어요(published_date={published_date}). "
+            f"ℹ️  [{mode}] 모델이 보고한 날짜({model_claimed_date})와 페이지 실측 날짜"
+            f"({page_date})가 달라요 — 페이지 실측값을 기준으로 판단합니다."
+        )
+
+    if freshness is not True:
+        reason = "판단 불가(날짜를 확인할 수 없음)" if freshness is None else "오래된 기사"
+        print(
+            f"ℹ️  [{mode}] 소식 기준일 검증 실패({reason}, {date_source}={effective_date!r}). "
             "옛날 뉴스 재탕 방지를 위해 이번 실행은 건너뜁니다."
         )
         return None
@@ -360,8 +418,7 @@ def write_outputs(data: dict, mode: str) -> tuple[Path, Path] | None:
     body = "\n\n===POST_SEPARATOR===\n\n".join(p.strip() for p in posts if p.strip())
     out_path.write_text(body, encoding="utf-8")
 
-    source_url = data.get("source_url", "")
-    image_url = fetch_og_image(source_url)
+    image_url = page_meta["image_url"]
     image_source = "og" if image_url else ""
     if not image_url:
         # 출처에 대표 이미지가 없으면 OpenAI로 뉴스톤 이미지를 생성해서 항상 이미지를 붙인다.
@@ -377,7 +434,8 @@ def write_outputs(data: dict, mode: str) -> tuple[Path, Path] | None:
         json.dumps(
             {
                 "topic": data.get("topic", ""),
-                "published_date": published_date,
+                "published_date": effective_date,
+                "published_date_source": date_source,
                 "source_name": data.get("source_name", ""),
                 "source_url": source_url,
                 "image_url": image_url,
