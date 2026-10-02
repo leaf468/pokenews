@@ -1,12 +1,6 @@
 {
   "posts": [
     {
-      "topic": "Pokémon GO x SKT '포켓몬과 찰칵' — 잉어킹 프로모 카드 응모·수령 일정 공개",
-      "has_news": true,
-      "hook": "사진 한 장으로 잉어킹 프로모 카드를 받을 수 있어요 — 응모 기간·수령 일정 공개합니다.",
-      "posted_at": "2026-09-10T17:35:42.827004+09:00"
-    },
-    {
       "topic": "Heritage Auctions Europe 온라인 경매(9/9~9/12) — Lot 4587에 Erika’s Invitation Mew PSA 10 등 고등급 포켓몬 카드 출품",
       "has_news": true,
       "hook": "이번 주 경매 체크하세요 — Heritage Auctions Europe 온라인 경매에서 2026-09-12(현지시간) 라이브로 상정되는 Lot 4587에 Erika’s Invitation (Mew) Special Illustration Rare PSA 10 등 고등급 포켓몬 카드가 올라왔습니다. Lot 4574에는 Ash’s Pikachu SM Promo 074 (Japanese) PSA 10 등도 출품되어 있고, 프리비드·라이브 시간(로트별 상이)은 경매 상세페이지에 명시돼 있으니 입찰 전 반드시 확인하세요. 출처: Heritage Auctions Europe. #포켓몬카드 #포켓몬TCG #경매시세",
@@ -359,6 +353,12 @@
       "has_news": true,
       "hook": "아직 잉어킹 프로모 못 받으셨나요? 🎣",
       "posted_at": "2026-10-02T12:40:28.710177+09:00"
+    },
+    {
+      "topic": "Pokémon Team Masters 2027 in SEOUL — 팀전 형식 신규 대회 서울 개최(2027-01-23~24)",
+      "has_news": true,
+      "hook": "팀 대항전이 온다 — 'Pokémon Team Masters' 첫 대회가 2027년 1월 23일(토)~24일(일), 서울 KINTEX 제1전시장 1‑2홀에서 열립니다. 카드 게임 부문으로 진행되며 영어·한국어·일본어 등 총 7개 언어를 지원하고, 대회 프로모션 영상이 공개됐어요. 참가(계정 생성·팀 구성·신청) 관련 안내는 전용 사이트에서 확인 가능합니다. #포켓몬카드 #포켓몬TCG #PokémonTeamMasters #KINTEX",
+      "posted_at": "2026-10-02T19:15:09.557609+09:00"
     }
   ]
 }
