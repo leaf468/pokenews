@@ -1,12 +1,6 @@
 {
   "posts": [
     {
-      "topic": "Heritage Auctions 경매(9/18~9/19)에 'Pikachu Illustrator' PSA Mint 9 출품 — 현재 입찰 $1,200,000",
-      "has_news": true,
-      "hook": "경매 소식입니다 — 전설급 카드 'Pikachu Illustrator'(PSA Mint 9)가 Heritage Auctions의 Trading Card Games Signature 경매(미국 댈러스) LOT #36028로 출품돼요. 경매 세션은 2026‑09‑18~19, 현재 입찰 $1,200,000 기록 중이며(프록시 마감 전), 낙찰 시 구매자 수수료는 25%입니다. 출처: Heritage Auctions. #포켓몬카드 #PikachuIllustrator #포켓몬TCG",
-      "posted_at": "2026-09-17T18:07:22.904521+09:00"
-    },
-    {
       "topic": "한국 정발가 공개 — '30th CELEBRATION' 확장팩(9/16)과 FUTURISTIC BOX(10월 예정) 가격·일정",
       "has_news": true,
       "hook": "한국 판매가가 떴습니다 — 확장팩 '30th CELEBRATION'이 2026-09-16(수) 전세계 동시 발매로 한국에서는 포켓몬스토어 코리아 판매가 1박스 70,000원으로 안내돼요. 📦",
@@ -359,6 +353,12 @@
       "has_news": true,
       "hook": "10월 15일, 일본 TCG 유통 플랫폼 'PICKET'이 한국 앱 출시를 예고했습니다. 조선비즈 보도에 따르면 사전예약은 시작 15일 만에 약 8,000명이 참여했고, 출시와 함께 TCG 관련 이벤트·프로모션을 진행할 계획이라고 합니다. 국내 유통·이벤트 영향은 출시 이후 공지될 예정이니 관심 있으신 분들은 론칭 날짜(2026-10-15)를 확인하세요. 출처: 조선비즈. #포켓몬카드 #트레이딩카드 #PICKET",
       "posted_at": "2026-10-11T12:29:13.381137+09:00"
+    },
+    {
+      "topic": "서울카드페스타 — 2026-11-14 KINTEX 제2전시장 6홀 개최 (트레이딩카드 페스타)",
+      "has_news": true,
+      "hook": "예정 공지 — 11월 14일(토), 고양 KINTEX 제2전시장 6홀에서 '서울카드페스타'가 열립니다. 🎫",
+      "posted_at": "2026-10-11T19:31:02.908653+09:00"
     }
   ]
 }
