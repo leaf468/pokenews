@@ -419,7 +419,30 @@
       "hook": "10월 24일부터 전국 편의점에서 포켓몬 카드 MEGA 확장팩 '30th CELEBRATION'의 점포 입고가 순차적으로 시작됩니다📦",
       "posted_at": "2026-10-13T14:03:27.200775+09:00",
       "source_url": "https://www.segye.com/newsView/20261009503810"
+    },
+    {
+      "topic": "우리동네GS 앱으로 스톰에메랄다 서울 3곳서 84팩 확인(10월13일 밤)",
+      "event_key": "GS25 스톰에메랄다 재고 84팩",
+      "source_url": "https://pokemonboxhouse.tistory.com/96",
+      "base_date": "2026-10-13",
+      "has_news": true,
+      "hook": "10월 13일 밤, 우리동네GS 앱에서 스톰에메랄다가 서울 3곳에 합쳐 84팩 떠 있음을 확인했어요. 후암스카이점 42팩, 숭의여대점 21팩, 중구퇴계점 21팩입니다. 앱 화면에는 모두 '방문 구매만 가능'으로 표시돼 있었고, GS25는 기사 다음 주부터 차례로 입고할 계획이라고 전해요(세계일보 10월 9일 기사). 출처: Pokemon Box House",
+      "posted_at": "2026-10-13T22:39:12.369305+09:00"
     }
   ],
-  "checked": {}
+  "checked": {
+    "pokemonboxhouse.tistory.com/96": "2026-10-13T22:38:55.564631+09:00",
+    "pokemonboxhouse.tistory.com/95": "2026-10-13T22:38:55.564631+09:00",
+    "mashable.com/life/oct-13-pokemon-tcg-30th-delta-reign-booster-bundle-preorder-deal": "2026-10-13T22:38:55.564631+09:00",
+    "player.one/pokemon-30th-celebration-cards-are-hard-find-uk-toy-shop-reports-500-messages-week-164268": "2026-10-13T22:38:55.564631+09:00",
+    "biz.heraldcorp.com/article/10900798": "2026-10-13T22:38:55.564631+09:00",
+    "wargamer.com/pokemon-trading-card-game/tag-team-pokemon-price-spikes": "2026-10-13T22:38:55.564631+09:00",
+    "kr.beincrypto.com/apple-pokemon-speaker-beats-pikachu-teaser": "2026-10-13T22:38:55.564631+09:00",
+    "inven.co.kr/webzine/news?news=322009": "2026-10-13T22:38:55.564631+09:00",
+    "note.com/joyful_oriole821/n/n2740b6b15943?hl=ko": "2026-10-13T22:38:55.564631+09:00",
+    "news1.kr/photos/8155919": "2026-10-13T22:38:55.564631+09:00",
+    "thehypemagazine.com/2026/10/12/pokemon-tcg-retailer-warning-30th-anniversary-demand": "2026-10-13T22:38:55.564631+09:00",
+    "mt.co.kr/index.php/politics/2026/10/12/2026101218344326509": "2026-10-13T22:38:55.564631+09:00",
+    "pokemonkorea.co.kr/news/3/21472": "2026-10-13T22:38:55.564631+09:00"
+  }
 }
