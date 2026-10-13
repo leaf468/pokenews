@@ -1,7 +1,7 @@
 # 🃏 포켓몬 카드 Threads 봇
 
 포켓몬 카드의 **최신 뉴스·발매 소식·오프라인 이벤트**(특히 한국 소식)를 수집해서
-Threads에 자동으로 올리는 초경량 GitHub Actions 봇. 밈/공감·트리비아·꿀팁 같은
+Threads용 포스트를 만들어 GitHub Issue로 쌓는 (게시는 사람이 복붙) 초경량 GitHub Actions 봇. 밈/공감·트리비아·꿀팁 같은
 뉴스가 아닌 콘텐츠는 다루지 않는 "소식 전달" 채널.
 
 DeepAgents 같은 무거운 에이전트 프레임워크 없이, 소스를 직접 수집하는 스크립트와 OpenAI API
@@ -12,7 +12,7 @@ DeepAgents 같은 무거운 에이전트 프레임워크 없이, 소스를 직�
 - **속보 체크: 30분마다** — 소스를 직접 수집(모델 사용 없음)해서, 최근 24시간 안에 올라온 새 글 중
   속보감인 글(공식 공지·SNS 글, 또는 제목에 입고·발매·품절 같은 단어)이 있을 때만 모델을 호출하고,
   모델이 "속보"로 판정한 것만 바로 게시 (직전 게시 후 60분 동안은 쉼). 호출마다 사용 토큰을 로그에 남김
-- **정기 발행 4회** (한국시간 09:00 / 13:00 / 17:00 / 21:00) — 최근 72시간 수집 글 중 가장 좋은 것 1건.
+- **정기 발행 4회** (한국시간 09:00 / 13:00 / 17:00 / 21:00) — 최근 48시간 수집 글 중 가장 좋은 것 1건.
   수집 글로 못 채우면 웹 검색 후보(아래 검증 통과분)로 한 번 더 시도
 - 올릴 게 없으면 그 실행은 건너뜀 (과거 뉴스 재탕·중복 게시·밈/트리비아 대체 없음)
 
@@ -31,12 +31,14 @@ DeepAgents 같은 무거운 에이전트 프레임워크 없이, 소스를 직�
 | Bing 뉴스 RSS (국내·해외 언론) | 없음 |
 | PokéBeach (해외 TCG 속보) | 없음 |
 | 블로그 RSS (`BLOG_FEEDS` 목록) | 없음 — 목록에 피드 주소 추가 |
-| Threads 키워드 검색 최신순 | 시크릿 `THREADS_ACCESS_TOKEN` (게시에 쓰는 토큰. `threads_keyword_search` 권한 필요, 앱 심사 전에는 본인 글만 검색됨), 변수 `THREADS_USERNAME` (우리 채널 글 제외용) |
+| Threads 최신순 검색 + 지정 계정 최근 글 | 없음 — 계정을 지켜보려면 변수 `THREADS_ACCOUNTS` (공백 구분) |
 | X 최근 검색 | 시크릿 `X_BEARER_TOKEN` (X API 유료 플랜) |
 | 인스타그램 계정 최근 게시물 | 시크릿 `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_USER_ID` (본인 비즈니스/크리에이터 계정의 Graph API 토큰), 변수 `INSTAGRAM_ACCOUNTS` (지켜볼 계정, 공백 구분) |
 
-X·Threads·인스타그램은 로그인 없는 자동 접근을 막고 있어서 공식 API 토큰이 있어야만 읽을 수 있다
-(X 임베드 타임라인은 키 없이 열리지만 몇 번 만에 429가 나고 최신순도 아니라서 쓰지 않는다).
+Threads는 로그인 없는 일반 브라우저에는 글을 내려주지 않고 검색엔진 크롤러에게만 글이 담긴 페이지를
+준다. 그래서 크롤러 UA로 공개 검색 결과를 읽는다. 공식 API가 아닌 비공식 경로라 Meta가 막으면
+0건이 될 수 있다 (그 경우 로그의 `📥 Threads 검색` 건수가 0으로 찍힌다). SNS 글은 24시간 이내 것만 쓴다.
+X와 인스타그램은 이런 경로가 없어 공식 API 토큰이 있어야만 읽을 수 있다.
 수집 결과만 확인하려면: `python scripts/collect_sources.py`
 
 ## 🎯 다루는 콘텐츠
@@ -70,11 +72,9 @@ scripts/generate_pokemon_content.py
   - 정기 슬롯에서 못 채우면 OpenAI web_search 후보를 받아 코드로 검증 (출처 접속 → 중복 → 최신성)
   - 출처 페이지에서 대표 이미지(og:image/twitter:image) 추출, 없으면 OpenAI로 뉴스톤 이미지 생성
         ↓ (생성됐을 때만)
-scripts/post_to_threads.py
-  - Threads API로 자동 게시 (첫 글에 이미지 첨부, 여러 포스트면 답글로 스레드 연결)
-        ↓
 GitHub Issue 생성 (라벨: pokemon-post, mode:scheduled/mode:breaking)
-  - 본문 + 출처 + 모드 + 생성 시각 기록 → 발행 로그이자 수동 복붙용
+  - 본문 + 출처 + 모드 + 생성 시각 기록 → 여기서 본문을 복붙해 Threads에 직접 게시
+    (자동 게시는 꺼 둠. 필요하면 scripts/post_to_threads.py 를 워크플로 스텝으로 다시 연결)
         ↓
 reports/pokemon_posted_state.json 만 커밋 & 푸시 (게시 이력 + 속보 판정을 마친 글 목록)
 ```
@@ -106,9 +106,7 @@ reports/pokemon_posted_state.json 만 커밋 & 푸시 (게시 이력 + 속보 �
 ### 1. API 키 준비
 
 - **OpenAI API Key**: https://platform.openai.com/api-keys
-- **Threads 키워드 검색 / X API / 인스타그램 Graph API** (선택, SNS 속보 수집용) — 위 "수집 소스" 참고
-- **Threads API** (선택, 자동 게시용): https://developers.facebook.com/docs/threads
-  - `THREADS_ACCESS_TOKEN`, `THREADS_USER_ID` 발급
+- **X API / 인스타그램 Graph API** (선택, SNS 속보 수집용) — 위 "수집 소스" 참고
 
 ### 2. GitHub Secrets 설정
 
@@ -116,12 +114,9 @@ Repository → Settings → Secrets and variables → Actions 에 추가:
 
 ```
 OPENAI_API_KEY=sk-xxxxx
-THREADS_ACCESS_TOKEN=your_threads_access_token   # 선택
-THREADS_USER_ID=your_threads_user_id             # 선택
 ```
 
-Threads 시크릿이 없으면 게시는 건너뛰고, 대신 매번 생성되는 GitHub Issue에서 본문을
-복붙해서 수동으로 올리면 됨.
+게시는 자동으로 하지 않음. 매번 생성되는 GitHub Issue에서 본문을 복붙해서 직접 올리면 됨.
 
 ### 3. GitHub Actions 활성화
 
@@ -159,10 +154,6 @@ OPENAI_MODEL=gpt-5-mini
 ### 매번 같은 소재만 나와요
 - `reports/pokemon_posted_state.json` 이 커밋되고 있는지 확인 (이 이력으로 URL·소재 중복을 걸러냄)
 - 워크플로우 로그에서 해당 후보가 왜 통과했는지 확인하고, 필요하면 `TOPIC_SIMILARITY_THRESHOLD`를 낮춤
-
-### Threads에 안 올라가요
-- `THREADS_ACCESS_TOKEN` / `THREADS_USER_ID` 시크릿이 올바른지 확인
-- 토큰 만료 여부 확인 (Threads 장기 토큰은 60일마다 갱신 필요)
 
 ### 액션은 성공(success)인데 Issue가 안 쌓여요
 - 워크플로우 로그에서 `Generate Pokemon card content` 스텝 출력에 "검증을 통과한 소식이 없어요"가

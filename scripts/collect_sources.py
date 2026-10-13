@@ -11,18 +11,18 @@
 - Bing 뉴스 RSS (국내·해외 언론 보도, 발행 시각 포함)
 - PokéBeach 첫 화면 (해외 TCG 속보)
 - BLOG_FEEDS 에 적어 둔 블로그 RSS
+- Threads 최신순 검색 결과와 THREADS_ACCOUNTS 계정의 최근 글 (비공식 경로 — fetch_threads 참고)
 
 
 소스 (환경변수가 있을 때만 동작):
-- Threads 키워드 검색 최신순 (THREADS_ACCESS_TOKEN — 게시에 쓰는 토큰, threads_keyword_search 권한 필요)
-- X 최근 검색 (X_BEARER_TOKEN — 유료 API)
-  X와 Threads는 로그인 없는 접근을 막아서(X 임베드 타임라인은 몇 번 만에 429, 최신순도 아님)
-  공식 API 토큰 없이는 읽을 수 없다.
+- X 최근 검색 (X_BEARER_TOKEN — 유료 API. X 임베드 타임라인은 키 없이 열리지만 몇 번 만에 429가
+  나고 최신순도 아니라서 쓰지 않는다)
 - 인스타그램 비즈니스 계정 최근 게시물 (INSTAGRAM_ACCESS_TOKEN / INSTAGRAM_USER_ID, INSTAGRAM_ACCOUNTS)
 
 단독 실행하면 수집 결과를 표로 찍는다: python scripts/collect_sources.py
 """
 
+import json
 import os
 import re
 import sys
@@ -45,6 +45,11 @@ HEADERS = {
 NEWS_QUERIES_KO = ["포켓몬카드", "포켓몬 카드 게임", "포켓몬 TCG"]
 NEWS_QUERIES_EN = ['"Pokemon TCG"']
 SOCIAL_QUERIES = ["포켓몬카드", "포켓몬 카드 입고"]
+# 단어를 여러 개 붙인 검색어는 결과가 0건으로 내려와서 짧은 검색어만 쓴다.
+THREADS_QUERIES = ["포켓몬카드", "포켓몬 카드", "포켓몬TCG"]
+# 최근 글을 직접 지켜볼 Threads 계정 (공식·카드샵 등). THREADS_ACCOUNTS 환경변수(공백 구분)로 덮어쓴다.
+THREADS_ACCOUNTS = []
+THREADS_CRAWLER_UA = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
 # X 검색 결과에서 이 좋아요 수 미만인 글은 버린다 (잡담·홍보 계정 걸러내기).
 X_MIN_LIKES = 20
 
@@ -260,34 +265,47 @@ def fetch_x_search(query: str) -> list[dict]:
     return items
 
 
-def fetch_threads_search(query: str) -> list[dict]:
-    """Threads API 키워드 검색 최신순. 토큰에 threads_keyword_search 권한이 있어야 하고,
-    앱 심사 전에는 본인 글만 검색된다."""
-    resp = get(
-        "https://graph.threads.net/v1.0/keyword_search",
-        params={
-            "q": query,
-            "search_type": "RECENT",
-            "fields": "id,text,permalink,timestamp,username,media_type,media_url,thumbnail_url",
-            "access_token": os.environ["THREADS_ACCESS_TOKEN"],
-        },
-    )
-    own = os.environ.get("THREADS_USERNAME", "").lstrip("@").lower()
+def fetch_threads(url: str, params: dict | None = None) -> list[dict]:
+    """Threads 공개 페이지(검색 결과·프로필)에 들어 있는 글을 읽는다.
+    Threads는 일반 브라우저에는 로그인 없이 글을 내려주지 않고 검색엔진 크롤러에게만 글이 담긴
+    페이지를 준다. 그래서 크롤러 UA로 요청한다 — Meta가 막으면 언제든 0건이 될 수 있는 비공식 경로다."""
+    html = get(url, params=params, headers={"User-Agent": THREADS_CRAWLER_UA, "Accept-Language": "ko"}).text
+    posts = []
+
+    def walk(node):
+        if isinstance(node, dict):
+            for thread_item in node.get("thread_items") or []:
+                if isinstance(thread_item, dict) and isinstance(thread_item.get("post"), dict):
+                    posts.append(thread_item["post"])
+            for value in node.values():
+                walk(value)
+        elif isinstance(node, list):
+            for value in node:
+                walk(value)
+
+    for block in re.findall(r'<script type="application/json"[^>]*>(.*?)</script>', html, re.S):
+        if "thread_items" in block:
+            try:
+                walk(json.loads(block))
+            except ValueError:
+                continue
+
     items = []
-    for post in resp.json().get("data", []):
-        text, username = post.get("text") or "", post.get("username", "")
-        if not text or username.lower() == own:  # 우리 채널이 올린 글은 소스가 아니다
+    for post in posts:
+        text = ((post.get("caption") or {}).get("text") or "").strip()
+        username = (post.get("user") or {}).get("username", "")
+        if not text or not username or not post.get("code") or not post.get("taken_at"):
             continue
-        image = post.get("thumbnail_url") if post.get("media_type") == "VIDEO" else post.get("media_url")
+        images = (post.get("image_versions2") or {}).get("candidates") or [{}]
         items.append(
             make_item(
                 "threads",
                 f"Threads @{username}",
-                text.strip().splitlines()[0],
-                post.get("permalink", ""),
-                parse_iso(post.get("timestamp", "")),
+                text.splitlines()[0],
+                f"https://www.threads.com/@{username}/post/{post['code']}",
+                datetime.fromtimestamp(post["taken_at"], tz=timezone.utc),
                 text,
-                image or "",
+                images[0].get("url", ""),
             )
         )
     return items
@@ -331,9 +349,14 @@ def build_jobs() -> list[tuple[str, callable]]:
         jobs.append((f"Bing 뉴스 {query}", lambda q=query: fetch_bing_news(q, "en-US")))
     for name, feed_url in BLOG_FEEDS:
         jobs.append((f"블로그 {name}", lambda n=name, u=feed_url: fetch_rss(n, u)))
+    for query in THREADS_QUERIES:
+        jobs.append((
+            f"Threads 검색 '{query}'",
+            lambda q=query: fetch_threads("https://www.threads.com/search", {"q": q, "serp_type": "recent"}),
+        ))
+    for username in os.environ.get("THREADS_ACCOUNTS", "").replace(",", " ").split() or THREADS_ACCOUNTS:
+        jobs.append((f"Threads @{username}", lambda u=username.lstrip("@"): fetch_threads(f"https://www.threads.com/@{u}")))
     for query in SOCIAL_QUERIES:
-        if os.environ.get("THREADS_ACCESS_TOKEN"):
-            jobs.append((f"Threads 검색 '{query}'", lambda q=query: fetch_threads_search(q)))
         if os.environ.get("X_BEARER_TOKEN"):
             jobs.append((f"X 검색 '{query}'", lambda q=query: fetch_x_search(q)))
     if os.environ.get("INSTAGRAM_ACCESS_TOKEN") and os.environ.get("INSTAGRAM_USER_ID"):

@@ -70,7 +70,10 @@ HISTORY_KEEP = 500
 MAX_CANDIDATES = 5
 # 직접 수집한 글 중 이 시간 안에 올라온 것만 본다 (속보 / 정기).
 BREAKING_WINDOW_HOURS = 24
-SCHEDULED_WINDOW_HOURS = 72
+SCHEDULED_WINDOW_HOURS = 48
+# SNS 글은 금방 낡으므로 모드와 상관없이 이 시간 안에 올라온 것만 본다.
+SOCIAL_WINDOW_HOURS = 24
+SOCIAL_KINDS = ("threads", "x", "instagram")
 # 속보가 연달아 쏟아지지 않도록, 직전 게시 후 이 시간 동안은 속보를 올리지 않는다.
 MIN_BREAKING_GAP_MINUTES = 60
 # 모델에게 한 번에 보여주는 수집 글 수 (최신순 상위).
@@ -750,10 +753,13 @@ def fresh_items(items: list[dict], state: dict, mode: str, now: datetime) -> lis
     """수집한 글 중 지금 다룰 만한 것만 남긴다: 최근에 올라왔고, 아직 게시하지 않았고,
     (속보 모드라면) 아직 속보 판정을 하지 않은 글."""
     hours = BREAKING_WINDOW_HOURS if mode == "breaking" else SCHEDULED_WINDOW_HOURS
-    cutoff = now - timedelta(hours=hours)
     fresh = []
     for item in items:
         published = item["published"]
+        social = item["kind"] in SOCIAL_KINDS
+        if social and not published:
+            continue
+        cutoff = now - timedelta(hours=min(hours, SOCIAL_WINDOW_HOURS) if social else hours)
         if published:
             if published > now + timedelta(hours=1):
                 continue
@@ -928,7 +934,7 @@ def select_from_sources(mode: str, state: dict) -> tuple[dict, dict] | None:
             print(f"ℹ️  [{mode}] 탈락 — {label} · 원문 발행일이 {page['published_date']} (재노출된 옛 글)")
             continue
         # SNS 글은 로그인 벽 때문에 원문 페이지를 못 여니 수집 때 받은 본문(글 전문/캡션)을 쓴다.
-        social = item["kind"] in ("threads", "x", "instagram")
+        social = item["kind"] in SOCIAL_KINDS
         content = item["summary"] if social or not (page["ok"] and len(page["text"]) >= 300) else page["text"]
         if len(content) < MIN_CONTENT_CHARS:
             print(f"ℹ️  [{mode}] 탈락 — {label} · 원문 본문을 확보하지 못함")

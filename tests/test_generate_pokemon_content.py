@@ -128,6 +128,12 @@ class FreshItemsTest(unittest.TestCase):
         self.assertEqual(self.urls(items, "breaking"), ["https://a.kr/1"])
         self.assertEqual(self.urls(items, "scheduled"), ["https://a.kr/1", "https://a.kr/2"])
 
+    def test_social_posts_must_be_within_a_day_in_any_mode(self):
+        old = self.item("어제 낮에 올라온 스레드 글 가나다", "https://www.threads.com/@a/post/1", 30)
+        new = self.item("방금 올라온 스레드 입고 글 라마바", "https://www.threads.com/@a/post/2", 2)
+        old["kind"] = new["kind"] = "threads"
+        self.assertEqual(self.urls([new, old], "scheduled"), [new["url"]])
+
     def test_day_only_dates_compare_by_day(self):
         yesterday = datetime(2026, 10, 12, tzinfo=g.KST)
         last_week = datetime(2026, 10, 5, tzinfo=g.KST)
