@@ -1,0 +1,149 @@
+"""최신성·중복 검증 로직 테스트 (네트워크/OpenAI 호출 없음).
+
+실행: python -m unittest discover tests
+"""
+
+import sys
+import unittest
+from datetime import date, datetime, timedelta
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+
+import generate_pokemon_content as g  # noqa: E402
+
+
+def page(text: str, published: date | None = None) -> dict:
+    return {"ok": True, "error": "", "text": text, "image_url": "", "published_date": published}
+
+
+class FreshnessTest(unittest.TestCase):
+    today = date(2026, 10, 7)
+
+    def check(self, text, published=None, **candidate):
+        ok, _, base_date = g.check_freshness(candidate, page(text, published), self.today)
+        return ok, base_date
+
+    def test_recent_article_passes_on_measured_date(self):
+        self.assertEqual(self.check("본문", date(2026, 10, 2)), (True, "2026-10-02"))
+
+    def test_old_article_fails_even_if_model_claims_today(self):
+        ok, _ = self.check("본문", date(2026, 9, 17), published_date="2026-10-07")
+        self.assertFalse(ok)
+
+    def test_claimed_publish_date_must_appear_on_page(self):
+        self.assertFalse(self.check("날짜 없는 본문", published_date="2026-10-06")[0])
+        self.assertTrue(self.check("등록 2026.10.06 본문", published_date="2026-10-06")[0])
+
+    def test_last_years_product_page_fails(self):
+        # 실제 사례: 2025년 발매 제품 페이지를 올해 발매 소식으로 올림
+        ok, _ = self.check("스타터 세트 MEGA 발매일 2025-10-24 가격 12,000원", event_date="2026-10-10")
+        self.assertFalse(ok)
+
+    def test_last_years_event_fails_on_weekday(self):
+        # 실제 사례: 2025년 10월 13일(월) 예약 공지를 2026년 일정으로 올림 (2026-10-13은 화요일)
+        text = "일정 1회차 : 2025년 10월 18일(토) 온라인 예약 10월 13일(월) 18:00 시작"
+        self.assertFalse(self.check(text, event_date="2026-10-13")[0])
+
+    def test_yearless_date_on_stale_page_fails(self):
+        text = "작성 2025년 10월 1일. 예약은 10월 13일 18:00 시작"
+        self.assertFalse(self.check(text, event_date="2026-10-13")[0])
+
+    def test_yearless_date_with_matching_weekday_passes(self):
+        text = "온라인 예약은 10월 13일(화) 18:00부터"
+        self.assertEqual(self.check(text, event_date="2026-10-13"), (True, "2026-10-13"))
+
+    def test_upcoming_event_with_full_date_passes(self):
+        text = "2026年10月16日(金)より発売"
+        self.assertEqual(self.check(text, event_date="2026-10-16"), (True, "2026-10-16"))
+
+    def test_far_future_or_past_event_fails(self):
+        text = "개최 일시 2027년 1월 23일(토) / 지난 행사 2026년 9월 12일(토)"
+        self.assertFalse(self.check(text, event_date="2027-01-23")[0])
+        self.assertFalse(self.check(text, event_date="2026-09-12")[0])
+
+
+class PostTextTest(unittest.TestCase):
+    today = date(2026, 10, 7)
+
+    def test_wrong_weekday_in_post_is_caught(self):
+        self.assertTrue(g.find_weekday_error("2026년 10월 13일(월) 18:00 예약 시작", self.today))
+        self.assertTrue(g.find_weekday_error("10월 13일(월) 예약 시작", self.today))
+
+    def test_correct_weekday_is_fine(self):
+        self.assertEqual(g.find_weekday_error("10월 13일(화)부터, 2027년 1월 23일(토) 개최", self.today), "")
+
+
+class DuplicateTest(unittest.TestCase):
+    today = date(2026, 10, 8)
+    history = [
+        {
+            "topic": "Pokémon Team Masters 2027 in SEOUL 개최·응모 9/28 시작",
+            "source_url": "https://www.pokemonkorea.co.kr/news/2/21301?utm_source=openai",
+            "posted_at": "2026-09-29T12:48:00+09:00",
+        },
+        {
+            "topic": "Pokémon TCG: 30th Celebration Mini Tin — 공식 출시일 2026-10-02",
+            "source_url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery/30th-celebration-mini-tin",
+            "posted_at": "2026-09-21T18:32:00+09:00",
+        },
+    ]
+
+    def test_same_url_is_duplicate(self):
+        candidate = {"topic": "팀전 대회 서울 개최", "source_url": "https://pokemonkorea.co.kr/news/2/21301/"}
+        self.assertIn("URL", g.find_duplicate(candidate, self.history, self.today))
+
+    def test_similar_topic_is_duplicate(self):
+        candidate = {"topic": "Pokémon Team Masters 2027 in SEOUL — 팀전 형식 신규 대회 서울 개최(2027-01-23~24)"}
+        self.assertIn("유사", g.find_duplicate(candidate, self.history, self.today))
+
+    def test_different_product_in_same_series_is_not_duplicate(self):
+        candidate = {"topic": "Pokémon TCG: 30th Celebration 부스터 번들(6팩) 2026-10-02 발매"}
+        self.assertEqual(g.find_duplicate(candidate, self.history, self.today), "")
+
+    def test_topic_outside_window_is_allowed_but_url_is_not(self):
+        later = date(2027, 3, 1)
+        candidate = {"topic": "Pokémon Team Masters 2027 in SEOUL 개최·응모 9/28 시작"}
+        self.assertEqual(g.find_duplicate(candidate, self.history, later), "")
+        candidate["source_url"] = "https://www.pokemonkorea.co.kr/news/2/21301"
+        self.assertIn("URL", g.find_duplicate(candidate, self.history, later))
+
+
+class FreshItemsTest(unittest.TestCase):
+    now = datetime(2026, 10, 13, 22, 0, tzinfo=g.KST)
+
+    def item(self, title, url, hours_ago=None, day=None):
+        published = self.now - timedelta(hours=hours_ago) if hours_ago is not None else day
+        return {"kind": "news", "source": "테스트", "title": title, "url": url, "summary": "",
+                "image": "", "published": published, "dated_by_day": day is not None}
+
+    def urls(self, items, mode, state=None):
+        state = state or {"posts": [], "checked": {}}
+        return [i["url"] for i in g.fresh_items(items, state, mode, self.now)]
+
+    def test_window_depends_on_mode(self):
+        items = [self.item("세 시간 전 소식 가나다라", "https://a.kr/1", 3),
+                 self.item("이틀 전 소식 마바사아", "https://a.kr/2", 48),
+                 self.item("나흘 전 소식 자차카타", "https://a.kr/3", 96)]
+        self.assertEqual(self.urls(items, "breaking"), ["https://a.kr/1"])
+        self.assertEqual(self.urls(items, "scheduled"), ["https://a.kr/1", "https://a.kr/2"])
+
+    def test_day_only_dates_compare_by_day(self):
+        yesterday = datetime(2026, 10, 12, tzinfo=g.KST)
+        last_week = datetime(2026, 10, 5, tzinfo=g.KST)
+        items = [self.item("어제 올라온 공식 공지", "https://a.kr/1", day=yesterday),
+                 self.item("지난주 올라온 공식 공지", "https://a.kr/2", day=last_week)]
+        self.assertEqual(self.urls(items, "breaking"), ["https://a.kr/1"])
+
+    def test_posted_and_checked_items_are_skipped(self):
+        items = [self.item("GS25 포켓몬 30주년 카드 출시", "https://a.kr/1", 1),
+                 self.item("이미 속보 판정한 글 가나다", "https://a.kr/2", 1),
+                 self.item("처음 보는 새 소식 라마바", "https://a.kr/3", 1)]
+        state = {"posts": [{"topic": "옛 소재", "source_url": "https://www.a.kr/1/", "posted_at": "2026-10-13T09:00:00+09:00"}],
+                 "checked": {"a.kr/2": "2026-10-13T21:40:00+09:00"}}
+        self.assertEqual(self.urls(items, "breaking", state), ["https://a.kr/3"])
+        self.assertEqual(self.urls(items, "scheduled", state), ["https://a.kr/2", "https://a.kr/3"])
+
+
+if __name__ == "__main__":
+    unittest.main()

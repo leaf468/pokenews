@@ -1,0 +1,332 @@
+#!/usr/bin/env python3
+"""
+포켓몬 카드 소식 "원문"을 여러 곳에서 직접 긁어오는 수집기.
+
+모델의 웹 검색은 검색 색인에 올라온 뒤에야 보이기 때문에 몇 시간~며칠씩 늦고, 묵은 페이지가
+섞여 나온다. 속보를 잡으려면 글이 올라오는 곳을 직접 읽어야 하므로, 여기서 발행 시각이 붙은
+항목 목록을 만들고 모델은 그 목록 안에서만 고르게 한다.
+
+소스 (키 없이 동작):
+- 포켓몬코리아 공식 소식 목록
+- Bing 뉴스 RSS (국내·해외 언론 보도, 발행 시각 포함)
+- PokéBeach 첫 화면 (해외 TCG 속보)
+- BLOG_FEEDS 에 적어 둔 블로그 RSS
+
+소스 (환경변수가 있을 때만 동작):
+- 네이버 검색 API — 뉴스·블로그·카페 최신순 (NAVER_CLIENT_ID / NAVER_CLIENT_SECRET)
+- 인스타그램 비즈니스 계정 최근 게시물 (INSTAGRAM_ACCESS_TOKEN / INSTAGRAM_USER_ID, INSTAGRAM_ACCOUNTS)
+
+단독 실행하면 수집 결과를 표로 찍는다: python scripts/collect_sources.py
+"""
+
+import os
+import re
+import sys
+from datetime import datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
+from html import unescape
+from urllib.parse import parse_qs, urljoin, urlsplit
+
+import requests
+
+KST = timezone(timedelta(hours=9))
+TIMEOUT = 12
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/126.0 Safari/537.36"
+    )
+}
+
+NEWS_QUERIES_KO = ["포켓몬카드", "포켓몬 카드 게임", "포켓몬 TCG"]
+NEWS_QUERIES_EN = ['"Pokemon TCG"']
+NAVER_QUERIES = ["포켓몬카드", "포켓몬 카드 입고", "포켓몬카드 발매"]
+
+# 직접 구독할 블로그 RSS (이름, 피드 주소). 티스토리는 https://<id>.tistory.com/rss,
+# 네이버 블로그는 https://rss.blog.naver.com/<id>.xml 형식이다.
+BLOG_FEEDS = [
+    ("Pokemon Box House", "https://pokemonboxhouse.tistory.com/rss"),
+]
+
+# 지켜볼 인스타그램 계정 (비즈니스/크리에이터 계정만 조회 가능). INSTAGRAM_ACCOUNTS 환경변수로 덮어쓴다.
+INSTAGRAM_ACCOUNTS = ["pokemon_korea", "pokemoncardgame_korea"]
+
+# 뉴스·블로그 검색 결과에는 무관한 글이 섞여 오므로 제목/요약에 이 단어가 있어야 한다.
+RELEVANT_RE = re.compile(r"포켓몬|pok[eé]mon|ポケモン|ポケカ", re.IGNORECASE)
+EN_MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
+
+
+def clean(text: str) -> str:
+    """태그·CDATA·엔티티를 걷어낸 한 줄 텍스트."""
+    text = re.sub(r"<!\[CDATA\[(.*?)\]\]>", r"\1", text or "", flags=re.S)
+    text = unescape(unescape(text))
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", text)).strip()
+
+
+def make_item(kind, source, title, url, published=None, summary="", image="", dated_by_day=False):
+    return {
+        "kind": kind,  # official / news / blog / cafe / instagram / overseas
+        "source": source,
+        "title": clean(title),
+        "url": (url or "").strip(),
+        "published": published,  # 시간대 포함 datetime, 모르면 None
+        "dated_by_day": dated_by_day,  # 날짜만 알고 시각은 모르는 항목
+        "summary": clean(summary)[:1500],
+        "image": (image or "").strip(),
+    }
+
+
+def get(url: str, **kwargs) -> requests.Response:
+    resp = requests.request(
+        kwargs.pop("method", "GET"), url, timeout=TIMEOUT, headers={**HEADERS, **kwargs.pop("headers", {})}, **kwargs
+    )
+    resp.raise_for_status()
+    if not resp.encoding or resp.encoding.lower() == "iso-8859-1":
+        resp.encoding = resp.apparent_encoding
+    return resp
+
+
+def tag(block: str, name: str) -> str:
+    match = re.search(rf"<{name}(?:\s[^>]*)?>(.*?)</{name}>", block, re.S | re.I)
+    return match.group(1) if match else ""
+
+
+def parse_rfc822(value: str) -> datetime | None:
+    try:
+        parsed = parsedate_to_datetime(clean(value))
+    except (TypeError, ValueError):
+        return None
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+
+
+def parse_iso(value: str) -> datetime | None:
+    value = clean(value).replace("Z", "+00:00")
+    value = re.sub(r"([+-]\d{2})(\d{2})$", r"\1:\2", value)  # +0000 → +00:00
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError:
+        return None
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+
+
+def fetch_pokemonkorea() -> list[dict]:
+    """포켓몬코리아 공식 소식 목록. 목록은 페이지가 아니라 /ajax/news 로 내려온다."""
+    base = "https://www.pokemonkorea.co.kr"
+    resp = get(
+        f"{base}/ajax/news",
+        method="POST",
+        data={"pn": "1", "cate": "0", "sword": "", "rcode": "menu_news"},
+        headers={"Referer": f"{base}/news", "X-Requested-With": "XMLHttpRequest"},
+    )
+    resp.encoding = "utf-8"
+    items = []
+    for block in re.findall(r'<li class="col-lg-3.*?</a>\s*</li>', resp.text, re.S):
+        href = re.search(r'<a href="([^"]+)"', block)
+        meta = tag(block, "ul")  # <li>분류</li><li>작성일</li> — 제목에도 날짜가 들어가므로 여기서만 읽는다
+        date = re.search(r"(20\d{2})년\s*(\d{1,2})월\s*(\d{1,2})일", meta)
+        if not href or not date:
+            continue
+        category = clean(tag(meta, "li"))
+        image = re.search(r'<img src="([^"]+)"', block)
+        url = urljoin(base, unescape(href.group(1)))
+        url = re.sub(r"\?cate=0&sword=$", "", url)
+        items.append(
+            make_item(
+                "official",
+                f"포켓몬코리아({category})" if category else "포켓몬코리아",
+                tag(block, "h3"),
+                url,
+                datetime(*map(int, date.groups()), tzinfo=KST),
+                image=image.group(1) if image else "",
+                dated_by_day=True,
+            )
+        )
+    return items
+
+
+def fetch_bing_news(query: str, market: str) -> list[dict]:
+    """Bing 뉴스 RSS 최신순. 링크가 Bing 경유 주소라 url 파라미터에서 원문 주소를 꺼낸다."""
+    lang, country = market.split("-")
+    resp = get(
+        "https://www.bing.com/news/search",
+        params={"q": query, "format": "rss", "qft": 'sortbydate="1"', "setlang": lang, "cc": country},
+    )
+    items = []
+    for block in re.findall(r"<item>(.*?)</item>", resp.text, re.S):
+        link = unescape(clean(tag(block, "link")))
+        original = parse_qs(urlsplit(link).query).get("url", [link])[0]
+        image = unescape(clean(tag(block, "News:Image")))
+        items.append(
+            make_item(
+                "news" if lang == "ko" else "overseas",
+                clean(tag(block, "News:Source")) or urlsplit(original).netloc,
+                tag(block, "title"),
+                original,
+                parse_rfc822(tag(block, "pubDate")),
+                tag(block, "description"),
+                image,
+            )
+        )
+    return items
+
+
+def fetch_rss(name: str, feed_url: str, kind: str = "blog") -> list[dict]:
+    """일반 RSS/Atom 피드."""
+    text = get(feed_url).text
+    items = []
+    for block in re.findall(r"<(?:item|entry)[\s>](.*?)</(?:item|entry)>", text, re.S):
+        link = clean(tag(block, "link"))
+        if not link:  # Atom: <link href="..."/>
+            href = re.search(r'<link[^>]+href="([^"]+)"', block)
+            link = unescape(href.group(1)) if href else ""
+        published = parse_rfc822(tag(block, "pubDate")) or parse_iso(
+            tag(block, "published") or tag(block, "updated")
+        )
+        summary = tag(block, "description") or tag(block, "summary") or tag(block, "content")
+        items.append(make_item(kind, name, tag(block, "title"), link, published, summary))
+    return items
+
+
+def fetch_pokebeach() -> list[dict]:
+    """PokéBeach 첫 화면의 최신 기사 (RSS가 죽어 있어 화면에서 읽는다)."""
+    html = get("https://www.pokebeach.com/").text
+    pattern = re.compile(
+        r'<a[^>]+href="(https://www\.pokebeach\.com/20\d{2}/\d{2}/[^"]+)"[^>]*>(.*?)</a>', re.S
+    )
+    stamp = re.compile(
+        r"([A-Za-z]{3})[a-z]*\.? (\d{1,2}), (20\d{2}) at (\d{1,2}):(\d{2}) ([AP]M)", re.I
+    )
+    titles, dates = {}, {}
+    for url, inner in pattern.findall(html):
+        text = clean(inner)
+        when = stamp.search(text)
+        if when:
+            month, day, year, hour, minute, ampm = when.groups()
+            hour = int(hour) % 12 + (12 if ampm.upper() == "PM" else 0)
+            # 사이트 표기 시각은 미국 서부 기준
+            dates[url] = datetime(
+                int(year), EN_MONTHS.index(month.lower()) + 1, int(day), hour, int(minute),
+                tzinfo=timezone(timedelta(hours=-7)),
+            )
+        elif len(text) > 15 and url not in titles:
+            titles[url] = text
+    return [
+        make_item("overseas", "PokéBeach", title, url, dates.get(url))
+        for url, title in titles.items()
+        if url in dates
+    ]
+
+
+def fetch_naver(section: str, query: str) -> list[dict]:
+    """네이버 검색 API 최신순. section: news / blog / cafearticle.
+    카페 글은 API가 작성 시각을 주지 않아 published 가 None 이다 (최신순 상위라는 것만 안다)."""
+    resp = get(
+        f"https://openapi.naver.com/v1/search/{section}.json",
+        params={"query": query, "display": 30, "sort": "date"},
+        headers={
+            "X-Naver-Client-Id": os.environ["NAVER_CLIENT_ID"],
+            "X-Naver-Client-Secret": os.environ["NAVER_CLIENT_SECRET"],
+        },
+    )
+    items = []
+    for row in resp.json().get("items", []):
+        if section == "news":
+            kind, source = "news", urlsplit(row.get("originallink") or row.get("link", "")).netloc
+            url = row.get("originallink") or row.get("link", "")
+            published, by_day = parse_rfc822(row.get("pubDate", "")), False
+        elif section == "blog":
+            kind, source, url = "blog", f"네이버 블로그 {row.get('bloggername', '')}".strip(), row.get("link", "")
+            day = re.fullmatch(r"(\d{4})(\d{2})(\d{2})", row.get("postdate", ""))
+            published = datetime(*map(int, day.groups()), tzinfo=KST) if day else None
+            by_day = True
+        else:
+            kind, source, url = "cafe", f"네이버 카페 {row.get('cafename', '')}".strip(), row.get("link", "")
+            published, by_day = None, False
+        items.append(
+            make_item(kind, source, row.get("title", ""), url, published, row.get("description", ""), dated_by_day=by_day)
+        )
+    return items
+
+
+def fetch_instagram(username: str) -> list[dict]:
+    """인스타그램 Graph API의 business_discovery 로 다른 비즈니스 계정의 최근 게시물을 읽는다.
+    로그인 없는 스크래핑은 막혀 있어서, 운영자 본인의 비즈니스 계정 토큰이 있어야만 가능하다."""
+    fields = (
+        f"business_discovery.username({username})"
+        "{media.limit(8){caption,permalink,timestamp,media_type,media_url,thumbnail_url}}"
+    )
+    resp = get(
+        f"https://graph.facebook.com/v21.0/{os.environ['INSTAGRAM_USER_ID']}",
+        params={"fields": fields, "access_token": os.environ["INSTAGRAM_ACCESS_TOKEN"]},
+    )
+    media = resp.json().get("business_discovery", {}).get("media", {}).get("data", [])
+    items = []
+    for post in media:
+        caption = post.get("caption", "")
+        image = post.get("thumbnail_url") if post.get("media_type") == "VIDEO" else post.get("media_url")
+        items.append(
+            make_item(
+                "instagram",
+                f"인스타그램 @{username}",
+                caption.strip().splitlines()[0] if caption.strip() else "",
+                post.get("permalink", ""),
+                parse_iso(post.get("timestamp", "")),
+                caption,
+                image or "",
+            )
+        )
+    return items
+
+
+def build_jobs() -> list[tuple[str, callable]]:
+    jobs = [("포켓몬코리아 공식", fetch_pokemonkorea), ("PokéBeach", fetch_pokebeach)]
+    for query in NEWS_QUERIES_KO:
+        jobs.append((f"Bing 뉴스 '{query}'", lambda q=query: fetch_bing_news(q, "ko-KR")))
+    for query in NEWS_QUERIES_EN:
+        jobs.append((f"Bing 뉴스 {query}", lambda q=query: fetch_bing_news(q, "en-US")))
+    for name, feed_url in BLOG_FEEDS:
+        jobs.append((f"블로그 {name}", lambda n=name, u=feed_url: fetch_rss(n, u)))
+    if os.environ.get("NAVER_CLIENT_ID") and os.environ.get("NAVER_CLIENT_SECRET"):
+        for section in ("news", "blog", "cafearticle"):
+            for query in NAVER_QUERIES:
+                jobs.append((f"네이버 {section} '{query}'", lambda s=section, q=query: fetch_naver(s, q)))
+    if os.environ.get("INSTAGRAM_ACCESS_TOKEN") and os.environ.get("INSTAGRAM_USER_ID"):
+        accounts = os.environ.get("INSTAGRAM_ACCOUNTS", "").replace(",", " ").split() or INSTAGRAM_ACCOUNTS
+        for username in accounts:
+            jobs.append((f"인스타그램 @{username}", lambda u=username: fetch_instagram(u)))
+    return jobs
+
+
+def collect_all(verbose: bool = True) -> list[dict]:
+    """모든 소스를 돌아 항목을 모은다. 한 소스가 죽어도 나머지는 계속 간다."""
+    items, seen = [], set()
+    for name, job in build_jobs():
+        try:
+            found = job()
+        except Exception as e:  # noqa: BLE001
+            print(f"⚠️  수집 실패 — {name}: {type(e).__name__}: {str(e)[:120]}", file=sys.stderr)
+            continue
+        kept = 0
+        for item in found:
+            if not item["title"] or not re.match(r"https?://", item["url"]):
+                continue
+            if item["kind"] != "official" and not RELEVANT_RE.search(f"{item['title']} {item['summary']}"):
+                continue
+            key = re.sub(r"^https?://(www\.)?", "", item["url"]).rstrip("/")
+            if key in seen:
+                continue
+            seen.add(key)
+            items.append(item)
+            kept += 1
+        if verbose:
+            print(f"📥 {name}: {kept}건")
+    oldest = datetime(2000, 1, 1, tzinfo=timezone.utc)
+    return sorted(items, key=lambda i: i["published"] or oldest, reverse=True)
+
+
+if __name__ == "__main__":
+    now = datetime.now(KST)
+    for entry in collect_all():
+        when = entry["published"]
+        age = f"{(now - when).total_seconds() / 3600:5.1f}h" if when else "   ?  "
+        print(f"{age} [{entry['kind']:9}] {entry['source'][:18]:18} {entry['title'][:70]}")

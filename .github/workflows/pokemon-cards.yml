@@ -13,13 +13,20 @@ on:
           - breaking
   schedule:
     # 정기 발행 4회 (한국시간 09/13/17/21시 = UTC 0/4/8/12시)
-    # Actions 무료 한도 절약을 위해 속보 체크 cron은 없앰. breaking 모드는
-    # workflow_dispatch로 수동 실행 시에만 사용 (inputs.mode에서 선택 가능).
     - cron: '0 0,4,8,12 * * *'
+    # 속보 체크: 20분마다 소스를 직접 수집해서 새 글이 있을 때만 모델을 부른다.
+    # (공개 저장소라 Actions 사용량 제한이 없다. 비공개로 바꾸면 간격을 늘릴 것.)
+    - cron: '10,30,50 * * * *'
+
+# 정기 발행과 속보 체크가 겹쳐도 이력 파일을 동시에 고치지 않도록 한 번에 하나씩만 돈다.
+concurrency:
+  group: pokemon-cards-bot
+  cancel-in-progress: false
 
 jobs:
   post:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
       issues: write
@@ -42,9 +49,10 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "mode=${{ inputs.mode }}" >> "$GITHUB_OUTPUT"
-          else
-            # schedule 트리거는 이제 정기 발행 cron 하나뿐.
+          elif [ "${{ github.event.schedule }}" = "0 0,4,8,12 * * *" ]; then
             echo "mode=scheduled" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=breaking" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Generate Pokemon card content
@@ -52,6 +60,12 @@ jobs:
         run: python scripts/generate_pokemon_content.py "${{ steps.mode.outputs.mode }}"
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          # 선택: 있으면 네이버 뉴스·블로그·카페 / 인스타그램도 수집한다.
+          NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
+          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+          INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
+          INSTAGRAM_ACCOUNTS: ${{ vars.INSTAGRAM_ACCOUNTS }}
 
       - name: Post to Threads
         if: steps.generate.outputs.has_content == 'true'
@@ -107,8 +121,8 @@ jobs:
             --label "pokemon-post" \
             --label "mode:$MODE"
 
+      # 게시가 없어도 속보 판정을 마친 글 목록이 바뀌므로 항상 실행한다.
       - name: Commit and push
-        if: steps.generate.outputs.has_content == 'true'
         run: |
           git config user.name "Pokemon Cards Bot"
           git config user.email "pokemon-cards-bot@users.noreply.github.com"
@@ -117,7 +131,11 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "🃏 포켓몬 카드 소식 (${{ steps.mode.outputs.mode }}) - $(TZ=Asia/Seoul date +'%Y-%m-%d %H:%M KST')"
+            if [ "${{ steps.generate.outputs.has_content }}" = "true" ]; then
+              git commit -m "🃏 포켓몬 카드 소식 (${{ steps.mode.outputs.mode }}) - $(TZ=Asia/Seoul date +'%Y-%m-%d %H:%M KST')"
+            else
+              git commit -m "chore: 속보 판정 이력 갱신"
+            fi
             git fetch origin main
             git rebase origin/main
             git push origin main
