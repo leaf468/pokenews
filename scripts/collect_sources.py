@@ -45,8 +45,9 @@ HEADERS = {
 NEWS_QUERIES_KO = ["포켓몬카드", "포켓몬 카드 게임", "포켓몬 TCG"]
 NEWS_QUERIES_EN = ['"Pokemon TCG"']
 SOCIAL_QUERIES = ["포켓몬카드", "포켓몬 카드 입고"]
-# 단어를 여러 개 붙인 검색어는 결과가 0건으로 내려와서 짧은 검색어만 쓴다.
-THREADS_QUERIES = ["포켓몬카드", "포켓몬 카드", "포켓몬TCG"]
+# 단어를 여러 개 붙인 검색어는 결과가 0건으로 내려온다. 또 몇 분 간격으로 여러 번 부르면 429로
+# 막히므로 검색어는 하나만 쓴다.
+THREADS_QUERIES = ["포켓몬카드"]
 # 최근 글을 직접 지켜볼 Threads 계정 (공식·카드샵 등). THREADS_ACCOUNTS 환경변수(공백 구분)로 덮어쓴다.
 THREADS_ACCOUNTS = []
 THREADS_CRAWLER_UA = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
