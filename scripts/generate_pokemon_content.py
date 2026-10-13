@@ -905,7 +905,8 @@ def select_from_sources(mode: str, state: dict) -> tuple[dict, dict] | None:
         mark_checked([item["url"] for item in fresh])
         fresh = [
             item for item in fresh
-            if item["kind"] in URGENT_KINDS or URGENT_RE.search(f"{item['title']} {item['summary'][:200]}")
+            if (item["kind"] in URGENT_KINDS or URGENT_RE.search(f"{item['title']} {item['summary'][:200]}"))
+            and not (item["kind"] == "official" and re.search(r"\((게임|애니[^)]*)\)$", item["source"]))
         ]
         print(f"ℹ️  [{mode}] 그중 속보 후보 {len(fresh)}건" + ("" if fresh else " — 모델 호출 없이 종료"))
     if not fresh:
