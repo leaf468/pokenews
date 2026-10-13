@@ -51,7 +51,7 @@ from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit
 import requests
 from openai import OpenAI
 
-from collect_sources import collect_all, fetch_bing_news
+from collect_sources import collect_all, fetch_bing_news, fetch_daum_news
 
 REPORTS_DIR = Path("reports")
 STATE_FILE = REPORTS_DIR / "pokemon_posted_state.json"
@@ -879,6 +879,15 @@ def host_of(url: str) -> str:
     return re.sub(r"^(www|m|amp|biz|news)\.", "", urlsplit(url).netloc.lower())
 
 
+def outlet_of(source: dict) -> str:
+    """출처가 어느 매체인지 나타내는 키. 서로 다른 매체 두 곳인지 셀 때 쓴다.
+    다음이 호스팅하는 기사(v.daum.net)는 도메인이 전부 같으므로 매체 이름으로 구분한다."""
+    host = host_of(source["url"])
+    if host == "v.daum.net":
+        return re.sub(r"\s+", "", source["name"]).lower()
+    return host
+
+
 def article_slice(text: str, title: str, limit: int) -> str:
     """페이지 텍스트 앞쪽의 메뉴·배너를 건너뛰고 제목이 나오는 곳부터 limit 글자를 돌려준다."""
     start = text.find(title.strip()[:15]) if len(title.strip()) >= 8 else -1
@@ -906,22 +915,28 @@ def find_cross_sources(primary: dict, title: str, query: str, pool: list[dict], 
         if topic_similarity(title, i["title"]) >= CROSS_TITLE_SIMILARITY or (needed and mentions(f"{i['title']} {i['summary']}"))
     ]
     for search in filter(None, [query.strip(), title.strip()[:60]]):
-        try:
-            market = "en-US" if re.fullmatch(r"[\x00-\x7f]+", search) else "ko-KR"
-            related += fetch_bing_news(search, market, newest=False)[:8]
-        except Exception as e:  # noqa: BLE001
-            print(f"⚠️  교차 검증용 검색 실패({search[:30]}): {type(e).__name__}", file=sys.stderr)
+        english = bool(re.fullmatch(r"[\x00-\x7f]+", search))
+        searches = [lambda: fetch_bing_news(search, "en-US" if english else "ko-KR", newest=False)]
+        if not english:
+            searches.insert(0, lambda: fetch_daum_news(search, newest=False))
+        for run in searches:
+            try:
+                related += run()[:8]
+            except Exception as e:  # noqa: BLE001
+                print(f"⚠️  교차 검증용 검색 실패({search[:30]}): {type(e).__name__}", file=sys.stderr)
 
-    seen_hosts = {host_of(primary["url"])}
+    # 주 출처와 같은 매체(이름 또는 도메인)는 독립 출처가 아니다.
+    seen_hosts = {host_of(primary["url"]), re.sub(r"\s+", "", primary["name"]).lower()}
     for other in related:  # 공식 사이트 글은 어느 경로로 찾았든 공식 출처로 취급하고 먼저 본다
         if host_of(other["url"]).endswith(OFFICIAL_HOSTS):
             other["kind"] = "official"
     related.sort(key=lambda i: i["kind"] != "official")
     sources = []
     for other in related:
-        host = host_of(other["url"])
+        host = outlet_of({"url": other["url"], "name": other["source"]})
+        outlet_name = re.sub(r"\s+", "", other["source"]).lower()
         # 블로그·SNS 글은 소식의 실마리는 되지만 다른 글을 확인해 주는 근거로는 쓰지 않는다.
-        if host in seen_hosts or host.endswith(AGGREGATOR_HOSTS) or other["kind"] in (*SOCIAL_KINDS, "blog"):
+        if outlet_name in seen_hosts or host in seen_hosts or host.endswith(AGGREGATOR_HOSTS) or other["kind"] in (*SOCIAL_KINDS, "blog"):
             continue
         if other["published"] and other["published"] < cutoff:
             continue
@@ -932,7 +947,7 @@ def find_cross_sources(primary: dict, title: str, query: str, pool: list[dict], 
             continue
         if not mentions(page["text"]):
             continue
-        seen_hosts.add(host)
+        seen_hosts.update({host, outlet_name})
         stamp = f"{other['published'].astimezone(KST):%Y-%m-%d}" if other["published"] else ""
         sources.append(
             make_source(other["source"], other["url"], other["kind"], article_slice(page["text"], other["title"], 3000), stamp)
@@ -1074,7 +1089,7 @@ def verify_post(posts: list[str], sources: list[dict], now: datetime) -> dict:
 
     core = valid((result.get("core") or {}).get("supported_by"))
     official = any(sources[i]["kind"] == "official" for i in core)
-    independent = len({host_of(sources[i]["url"]) for i in core})
+    independent = len({outlet_of(sources[i]) for i in core})
     if not result.get("claims"):
         problems.append("사실 대조 결과를 받지 못함")
     elif not official and independent < 2:

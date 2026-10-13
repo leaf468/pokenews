@@ -8,7 +8,7 @@
 
 소스 (키 없이 동작):
 - 포켓몬코리아 공식 소식 목록
-- Bing 뉴스 RSS (국내·해외 언론 보도, 발행 시각 포함)
+- 다음 뉴스 검색 최신순 (국내 언론 보도), Bing 뉴스 RSS (국내·해외 언론 보도)
 - PokéBeach 첫 화면 (해외 TCG 속보)
 - BLOG_FEEDS 에 적어 둔 블로그 RSS
 - Threads 최신순 검색 결과와 THREADS_ACCOUNTS 계정의 최근 글 (비공식 경로 — fetch_threads 참고)
@@ -182,6 +182,35 @@ def fetch_bing_news(query: str, market: str, newest: bool = True) -> list[dict]:
     return items
 
 
+def fetch_daum_news(query: str, newest: bool = True) -> list[dict]:
+    """다음 뉴스 검색 (기본 최신순, newest=False 면 정확도순). 국내 언론 기사가 Bing보다 훨씬 많이 잡힌다.
+    결과 링크는 다음이 호스팅하는 기사 페이지(v.daum.net)라서 매체 이름을 source 로 따로 읽는다."""
+    params = {"w": "news", "q": query}
+    if newest:
+        params["sort"] = "recency"
+    html = get("https://search.daum.net/search", params=params, headers={"Accept-Language": "ko"}).text
+    items = []
+    for block in re.findall(r"<li data-docid=.*?</li>", html, re.S):
+        link = re.search(r'href="https?://v\.daum\.net/v/(\d{14})(\d*)"', block)
+        press = re.search(r'class="tit_item" title="([^"]+)"', block)
+        title = re.search(r'class="item-title">.*?<a[^>]*>(.*?)</a>', block, re.S)
+        if not link or not title:
+            continue
+        summary = re.search(r'class="conts-desc[^"]*">.*?<a[^>]*>(.*?)</a>', block, re.S)
+        published = datetime.strptime(link.group(1), "%Y%m%d%H%M%S").replace(tzinfo=KST)
+        items.append(
+            make_item(
+                "news",
+                unescape(press.group(1)) if press else "다음 뉴스",
+                title.group(1),
+                f"https://v.daum.net/v/{link.group(1)}{link.group(2)}",
+                published,
+                summary.group(1) if summary else "",
+            )
+        )
+    return items
+
+
 def fetch_rss(name: str, feed_url: str, kind: str = "blog") -> list[dict]:
     """일반 RSS/Atom 피드."""
     text = get(feed_url).text
@@ -345,6 +374,7 @@ def fetch_instagram(username: str) -> list[dict]:
 def build_jobs() -> list[tuple[str, callable]]:
     jobs = [("포켓몬코리아 공식", fetch_pokemonkorea), ("PokéBeach", fetch_pokebeach)]
     for query in NEWS_QUERIES_KO:
+        jobs.append((f"다음 뉴스 '{query}'", lambda q=query: fetch_daum_news(q)))
         jobs.append((f"Bing 뉴스 '{query}'", lambda q=query: fetch_bing_news(q, "ko-KR")))
     for query in NEWS_QUERIES_EN:
         jobs.append((f"Bing 뉴스 {query}", lambda q=query: fetch_bing_news(q, "en-US")))
