@@ -4,7 +4,7 @@
 
 소식을 찾는 길은 두 가지다.
 
-1. 직접 수집 (기본) — collect_sources.py 가 공식 사이트·뉴스·블로그·카페·인스타그램에서 발행 시각이
+1. 직접 수집 (기본) — collect_sources.py 가 공식 사이트·뉴스·블로그(·Threads·X·인스타그램)에서 발행 시각이
    붙은 글 목록을 긁어온다. 모델은 그 목록 안에서 고르기만 하고, 고른 글의 원문을 코드가 가져와
    그 본문만 근거로 포스트를 쓰게 한다. 모델의 웹 검색은 색인이 늦어 속보를 못 잡고 묵은 페이지를
    섞어 오기 때문에, 속보(breaking)는 이 길로만 만든다.
@@ -77,6 +77,15 @@ MIN_BREAKING_GAP_MINUTES = 60
 MAX_RANK_ITEMS = 60
 # 원문에서 이 글자 수 이상을 확보해야 포스트를 쓴다 (제목만 보고 지어내지 않도록).
 MIN_CONTENT_CHARS = 120
+# 속보 체크에서는 제목/요약에 이런 단어가 있는 글(과 공식 공지·SNS 글)만 모델에게 보여준다.
+# 새 글이 올라올 때마다 모델을 부르면 대부분 칼럼·핫딜 기사에 토큰을 쓰게 되기 때문이다.
+URGENT_RE = re.compile(
+    r"입고|재입고|재판|발매|출시|예약|추첨|응모|품절|매진|완판|판매|배포|공지|발표|공개|개최|오픈|"
+    r"적발|도난|사기|리콜|연기|취소|restock|release|launch|announc|reveal|pre-?order|delay|"
+    r"cancel|recall|stolen|counterfeit|sold out",
+    re.IGNORECASE,
+)
+URGENT_KINDS = {"official", "threads", "x", "instagram"}
 # 속보 판정을 마친 글 URL을 기억하는 기간. 같은 글을 20분마다 다시 판정하지 않기 위한 것.
 CHECKED_KEEP_DAYS = 7
 
@@ -768,6 +777,9 @@ def ask_json(system: str, user: str) -> dict:
         model=os.environ.get("OPENAI_MODEL", "gpt-5-mini"),
         input=[{"role": "system", "content": system}, {"role": "user", "content": user}],
     )
+    usage = response.usage
+    if usage:  # 비용 추적용: 호출마다 실제 사용 토큰을 로그에 남긴다
+        print(f"💰 모델 호출: 입력 {usage.input_tokens} · 출력 {usage.output_tokens} 토큰")
     return parse_json_response(response.output_text)
 
 
@@ -781,6 +793,9 @@ Threads에 올릴 가치가 있는 소식을 골라줘. 독자는 한국의 포�
 3. 사건·이슈 — 품절 대란, 구매 제한, 위조 적발, 사기·도난, 리셀 논란, 시세 급변
 4. 곧 열리는 국내 오프라인 행사 — 카드쇼, 대회, 팝업스토어
 5. 해외 주요 소식 — 신세트 공개·발매, 대형 경매, 화제의 사건
+
+threads·x·instagram 글은 개인이 쓴 것일 수 있어. 공식 계정·매장 계정의 공지이거나, 본인이 직접 확인한
+구체적 사실(어느 매장에 무엇이 몇 개, 언제부터)을 담은 글만 골라. 소문·추측·잡담·판매글은 고르지 마.
 
 고르지 말 것:
 - 포켓몬 카드와 무관한 글 (게임·애니 소식, 카드가 지나가듯 언급된 기사)
@@ -885,12 +900,18 @@ def select_from_sources(mode: str, state: dict) -> tuple[dict, dict] | None:
     items = collect_all()
     fresh = fresh_items(items, state, mode, now)
     print(f"ℹ️  [{mode}] 수집 {len(items)}건 중 새로 볼 글 {len(fresh)}건")
+    if mode == "breaking":
+        # 속보감이 아닌 글은 모델을 부르지 않고 넘긴다 (정기 슬롯에서는 다시 후보가 된다).
+        mark_checked([item["url"] for item in fresh])
+        fresh = [
+            item for item in fresh
+            if item["kind"] in URGENT_KINDS or URGENT_RE.search(f"{item['title']} {item['summary'][:200]}")
+        ]
+        print(f"ℹ️  [{mode}] 그중 속보 후보 {len(fresh)}건" + ("" if fresh else " — 모델 호출 없이 종료"))
     if not fresh:
         return None
 
     picks = rank_items(fresh, history, now)
-    if mode == "breaking":
-        mark_checked([item["url"] for item in fresh])
     if not picks:
         print(f"ℹ️  [{mode}] 모델이 올릴 만한 글이 없다고 판단했어요.")
 
@@ -905,8 +926,9 @@ def select_from_sources(mode: str, state: dict) -> tuple[dict, dict] | None:
         if page["ok"] and page["published_date"] and (now.date() - page["published_date"]).days > MAX_NEWS_AGE_DAYS:
             print(f"ℹ️  [{mode}] 탈락 — {label} · 원문 발행일이 {page['published_date']} (재노출된 옛 글)")
             continue
-        # 카페·인스타그램처럼 로그인 벽이 있는 곳은 원문을 못 여니 수집 때 받은 본문(요약/캡션)을 쓴다.
-        content = page["text"] if page["ok"] and len(page["text"]) >= 300 else item["summary"]
+        # SNS 글은 로그인 벽 때문에 원문 페이지를 못 여니 수집 때 받은 본문(글 전문/캡션)을 쓴다.
+        social = item["kind"] in ("threads", "x", "instagram")
+        content = item["summary"] if social or not (page["ok"] and len(page["text"]) >= 300) else page["text"]
         if len(content) < MIN_CONTENT_CHARS:
             print(f"ℹ️  [{mode}] 탈락 — {label} · 원문 본문을 확보하지 못함")
             continue

@@ -12,8 +12,12 @@
 - PokéBeach 첫 화면 (해외 TCG 속보)
 - BLOG_FEEDS 에 적어 둔 블로그 RSS
 
+
 소스 (환경변수가 있을 때만 동작):
-- 네이버 검색 API — 뉴스·블로그·카페 최신순 (NAVER_CLIENT_ID / NAVER_CLIENT_SECRET)
+- Threads 키워드 검색 최신순 (THREADS_ACCESS_TOKEN — 게시에 쓰는 토큰, threads_keyword_search 권한 필요)
+- X 최근 검색 (X_BEARER_TOKEN — 유료 API)
+  X와 Threads는 로그인 없는 접근을 막아서(X 임베드 타임라인은 몇 번 만에 429, 최신순도 아님)
+  공식 API 토큰 없이는 읽을 수 없다.
 - 인스타그램 비즈니스 계정 최근 게시물 (INSTAGRAM_ACCESS_TOKEN / INSTAGRAM_USER_ID, INSTAGRAM_ACCOUNTS)
 
 단독 실행하면 수집 결과를 표로 찍는다: python scripts/collect_sources.py
@@ -40,7 +44,9 @@ HEADERS = {
 
 NEWS_QUERIES_KO = ["포켓몬카드", "포켓몬 카드 게임", "포켓몬 TCG"]
 NEWS_QUERIES_EN = ['"Pokemon TCG"']
-NAVER_QUERIES = ["포켓몬카드", "포켓몬 카드 입고", "포켓몬카드 발매"]
+SOCIAL_QUERIES = ["포켓몬카드", "포켓몬 카드 입고"]
+# X 검색 결과에서 이 좋아요 수 미만인 글은 버린다 (잡담·홍보 계정 걸러내기).
+X_MIN_LIKES = 20
 
 # 직접 구독할 블로그 RSS (이름, 피드 주소). 티스토리는 https://<id>.tistory.com/rss,
 # 네이버 블로그는 https://rss.blog.naver.com/<id>.xml 형식이다.
@@ -65,7 +71,7 @@ def clean(text: str) -> str:
 
 def make_item(kind, source, title, url, published=None, summary="", image="", dated_by_day=False):
     return {
-        "kind": kind,  # official / news / blog / cafe / instagram / overseas
+        "kind": kind,  # official / news / blog / x / threads / instagram / overseas
         "source": source,
         "title": clean(title),
         "url": (url or "").strip(),
@@ -217,33 +223,72 @@ def fetch_pokebeach() -> list[dict]:
     ]
 
 
-def fetch_naver(section: str, query: str) -> list[dict]:
-    """네이버 검색 API 최신순. section: news / blog / cafearticle.
-    카페 글은 API가 작성 시각을 주지 않아 published 가 None 이다 (최신순 상위라는 것만 안다)."""
+def tweet_item(tweet: dict, username: str) -> dict:
+    text = tweet.get("full_text") or tweet.get("text") or ""
+    media = (tweet.get("entities", {}).get("media") or [{}])[0]
+    return make_item(
+        "x",
+        f"X @{username}",
+        text.strip().splitlines()[0] if text.strip() else "",
+        f"https://x.com/{username}/status/{tweet.get('id_str') or tweet.get('id', '')}",
+        parse_rfc822(tweet.get("created_at", "")) or parse_iso(tweet.get("created_at", "")),
+        text,
+        media.get("media_url_https", ""),
+    )
+
+
+def fetch_x_search(query: str) -> list[dict]:
+    """X API v2 최근 검색 (유료). 리트윗·답글을 빼고 반응이 어느 정도 있는 글만 남긴다."""
     resp = get(
-        f"https://openapi.naver.com/v1/search/{section}.json",
-        params={"query": query, "display": 30, "sort": "date"},
-        headers={
-            "X-Naver-Client-Id": os.environ["NAVER_CLIENT_ID"],
-            "X-Naver-Client-Secret": os.environ["NAVER_CLIENT_SECRET"],
+        "https://api.x.com/2/tweets/search/recent",
+        params={
+            "query": f"{query} -is:retweet -is:reply",
+            "max_results": 50,
+            "tweet.fields": "created_at,public_metrics",
+            "expansions": "author_id",
+            "user.fields": "username",
+        },
+        headers={"Authorization": f"Bearer {os.environ['X_BEARER_TOKEN']}"},
+    )
+    body = resp.json()
+    names = {u["id"]: u["username"] for u in body.get("includes", {}).get("users", [])}
+    items = []
+    for tweet in body.get("data", []):
+        if tweet.get("public_metrics", {}).get("like_count", 0) < X_MIN_LIKES:
+            continue
+        items.append(tweet_item({**tweet, "id_str": tweet["id"]}, names.get(tweet.get("author_id"), "i")))
+    return items
+
+
+def fetch_threads_search(query: str) -> list[dict]:
+    """Threads API 키워드 검색 최신순. 토큰에 threads_keyword_search 권한이 있어야 하고,
+    앱 심사 전에는 본인 글만 검색된다."""
+    resp = get(
+        "https://graph.threads.net/v1.0/keyword_search",
+        params={
+            "q": query,
+            "search_type": "RECENT",
+            "fields": "id,text,permalink,timestamp,username,media_type,media_url,thumbnail_url",
+            "access_token": os.environ["THREADS_ACCESS_TOKEN"],
         },
     )
+    own = os.environ.get("THREADS_USERNAME", "").lstrip("@").lower()
     items = []
-    for row in resp.json().get("items", []):
-        if section == "news":
-            kind, source = "news", urlsplit(row.get("originallink") or row.get("link", "")).netloc
-            url = row.get("originallink") or row.get("link", "")
-            published, by_day = parse_rfc822(row.get("pubDate", "")), False
-        elif section == "blog":
-            kind, source, url = "blog", f"네이버 블로그 {row.get('bloggername', '')}".strip(), row.get("link", "")
-            day = re.fullmatch(r"(\d{4})(\d{2})(\d{2})", row.get("postdate", ""))
-            published = datetime(*map(int, day.groups()), tzinfo=KST) if day else None
-            by_day = True
-        else:
-            kind, source, url = "cafe", f"네이버 카페 {row.get('cafename', '')}".strip(), row.get("link", "")
-            published, by_day = None, False
+    for post in resp.json().get("data", []):
+        text, username = post.get("text") or "", post.get("username", "")
+        if not text or username.lower() == own:  # 우리 채널이 올린 글은 소스가 아니다
+            continue
+        image = post.get("thumbnail_url") if post.get("media_type") == "VIDEO" else post.get("media_url")
         items.append(
-            make_item(kind, source, row.get("title", ""), url, published, row.get("description", ""), dated_by_day=by_day)
+            make_item(
+                "threads",
+                f"Threads @{username}",
+                text.strip().splitlines()[0],
+                post.get("permalink", ""),
+                parse_iso(post.get("timestamp", "")),
+                text,
+                image or "",
+            )
         )
     return items
 
@@ -286,10 +331,11 @@ def build_jobs() -> list[tuple[str, callable]]:
         jobs.append((f"Bing 뉴스 {query}", lambda q=query: fetch_bing_news(q, "en-US")))
     for name, feed_url in BLOG_FEEDS:
         jobs.append((f"블로그 {name}", lambda n=name, u=feed_url: fetch_rss(n, u)))
-    if os.environ.get("NAVER_CLIENT_ID") and os.environ.get("NAVER_CLIENT_SECRET"):
-        for section in ("news", "blog", "cafearticle"):
-            for query in NAVER_QUERIES:
-                jobs.append((f"네이버 {section} '{query}'", lambda s=section, q=query: fetch_naver(s, q)))
+    for query in SOCIAL_QUERIES:
+        if os.environ.get("THREADS_ACCESS_TOKEN"):
+            jobs.append((f"Threads 검색 '{query}'", lambda q=query: fetch_threads_search(q)))
+        if os.environ.get("X_BEARER_TOKEN"):
+            jobs.append((f"X 검색 '{query}'", lambda q=query: fetch_x_search(q)))
     if os.environ.get("INSTAGRAM_ACCESS_TOKEN") and os.environ.get("INSTAGRAM_USER_ID"):
         accounts = os.environ.get("INSTAGRAM_ACCOUNTS", "").replace(",", " ").split() or INSTAGRAM_ACCOUNTS
         for username in accounts:

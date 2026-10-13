@@ -14,9 +14,9 @@ on:
   schedule:
     # 정기 발행 4회 (한국시간 09/13/17/21시 = UTC 0/4/8/12시)
     - cron: '0 0,4,8,12 * * *'
-    # 속보 체크: 20분마다 소스를 직접 수집해서 새 글이 있을 때만 모델을 부른다.
-    # (공개 저장소라 Actions 사용량 제한이 없다. 비공개로 바꾸면 간격을 늘릴 것.)
-    - cron: '10,30,50 * * * *'
+    # 속보 체크: 30분마다 소스를 직접 수집한다. 수집 자체는 모델을 쓰지 않고, 속보감인 새 글이
+    # 있을 때만 모델을 부른다. (공개 저장소라 Actions 사용량 제한이 없다. 비공개로 바꾸면 간격을 늘릴 것.)
+    - cron: '20,50 * * * *'
 
 # 정기 발행과 속보 체크가 겹쳐도 이력 파일을 동시에 고치지 않도록 한 번에 하나씩만 돈다.
 concurrency:
@@ -60,9 +60,10 @@ jobs:
         run: python scripts/generate_pokemon_content.py "${{ steps.mode.outputs.mode }}"
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          # 선택: 있으면 네이버 뉴스·블로그·카페 / 인스타그램도 수집한다.
-          NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
-          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
+          # 선택: 있으면 Threads 키워드 검색 / X 검색 / 인스타그램도 수집한다.
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          THREADS_USERNAME: ${{ vars.THREADS_USERNAME }}
+          X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
           INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
           INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
           INSTAGRAM_ACCOUNTS: ${{ vars.INSTAGRAM_ACCOUNTS }}
