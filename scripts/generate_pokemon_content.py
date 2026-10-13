@@ -29,6 +29,10 @@
 3. 중복 — 같은 URL, 또는 최근 DEDUP_WINDOW_DAYS 동안 다룬 소재와 겹치면 탈락
    (글자 유사도 → 애매한 건 모델에게 같은 소식인지 한 번 더 판정시킴).
 
+어느 길로 고른 소식이든 마지막에 교차 검증을 거친다: 같은 소식을 다룬 다른 출처를 찾아 함께
+읽히고, 완성된 포스트의 사실 하나하나를 출처별로 대조시킨다. 핵심 사실이 공식 출처 또는 서로 다른
+두 곳 이상에서 확인되지 않거나, 출처끼리 어긋나는 내용이 포스트에 남아 있으면 게시하지 않는다.
+
 통과한 후보가 없으면 파일을 만들지 않고 조용히 종료한다 (아무거나 올리는 것보다 건너뛰는 게 낫다).
 
 모든 소식에 이미지를 붙이기 위해, 출처 페이지에 대표 이미지(og:image/twitter:image)가
@@ -47,7 +51,7 @@ from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit
 import requests
 from openai import OpenAI
 
-from collect_sources import collect_all
+from collect_sources import collect_all, fetch_bing_news
 
 REPORTS_DIR = Path("reports")
 STATE_FILE = REPORTS_DIR / "pokemon_posted_state.json"
@@ -80,6 +84,15 @@ MIN_BREAKING_GAP_MINUTES = 60
 MAX_RANK_ITEMS = 60
 # 원문에서 이 글자 수 이상을 확보해야 포스트를 쓴다 (제목만 보고 지어내지 않도록).
 MIN_CONTENT_CHARS = 120
+# 이 도메인의 글은 그 자체로 공식 출처로 본다 (교차 확인 없이도 핵심 사실로 인정).
+OFFICIAL_HOSTS = ("pokemonkorea.co.kr", "pokemoncard.co.kr", "pokemonstore.co.kr", "pokemon.com", "pokemon.co.jp", "pokemon-card.com")
+# 교차 검증에 쓰는 보조 출처 수와, 같은 소식을 다룬 글로 보는 기간.
+MAX_CROSS_SOURCES = 3
+CROSS_SOURCE_DAYS = 7
+# 수집 목록에서 같은 소식을 다룬 글로 보는 제목 유사도.
+CROSS_TITLE_SIMILARITY = 0.4
+# 다른 매체 기사를 옮겨 싣기만 하는 곳은 독립 출처가 아니고 본문도 스크립트로만 내려와 읽을 수 없다.
+AGGREGATOR_HOSTS = ("msn.com", "news.google.com", "bing.com", "yahoo.com")
 # 속보 체크에서는 제목/요약에 이런 단어가 있는 글(과 공식 공지·SNS 글)만 모델에게 보여준다.
 # 새 글이 올라올 때마다 모델을 부르면 대부분 칼럼·핫딜 기사에 토큰을 쓰게 되기 때문이다.
 URGENT_RE = re.compile(
@@ -534,6 +547,7 @@ def save_post(candidate: dict, base_date: str, hook: str) -> None:
             "base_date": base_date,
             "has_news": True,
             "hook": hook,
+            "text": (candidate.get("threads_posts") or [""])[0][:400],
             "posted_at": datetime.now(KST).isoformat(),
         }
     )
@@ -839,7 +853,8 @@ def rank_items(items: list[dict], history: list[dict], now: datetime) -> list[di
 
 올릴 만한 글을 가치가 높은 순서로 최대 {MAX_CANDIDATES}개 골라줘. 마땅한 게 없으면 빈 배열로 둬 —
 억지로 채우지 마. 다음 JSON 형식으로만 응답해:
-{{"picks": [{{"index": 글 번호, "breaking": true 또는 false, "why": "고른 이유 한 줄"}}]}}
+{{"picks": [{{"index": 글 번호, "breaking": true 또는 false, "why": "고른 이유 한 줄",
+  "query": "같은 소식을 다룬 다른 기사를 찾을 뉴스 검색어 (핵심 고유명사 2~4개, 예: 'GS25 포켓몬 30주년 확장팩')"}}]}}
 """
     picks = []
     for pick in ask_json(RANK_SYSTEM_PROMPT, user).get("picks", []):
@@ -848,38 +863,144 @@ def rank_items(items: list[dict], history: list[dict], now: datetime) -> list[di
         except (KeyError, TypeError, ValueError):
             continue
         if 0 <= index < len(items) and index not in [p["index"] for p in picks]:
-            picks.append({"index": index, "breaking": bool(pick.get("breaking")), "why": str(pick.get("why", ""))})
+            picks.append(
+                {
+                    "index": index,
+                    "breaking": bool(pick.get("breaking")),
+                    "why": str(pick.get("why", "")),
+                    "query": str(pick.get("query", "")),
+                }
+            )
     return picks[:MAX_CANDIDATES]
 
 
-def write_post(item: dict, content: str, history: list[dict], now: datetime) -> dict:
-    """고른 글의 원문만 근거로 포스트를 쓰게 한다 (웹 검색 없음 — 원문에 없는 내용은 못 쓴다)."""
+def host_of(url: str) -> str:
+    """출처 독립성 비교용 도메인 (www·모바일·AMP 접두어 제거)."""
+    return re.sub(r"^(www|m|amp|biz|news)\.", "", urlsplit(url).netloc.lower())
+
+
+def article_slice(text: str, title: str, limit: int) -> str:
+    """페이지 텍스트 앞쪽의 메뉴·배너를 건너뛰고 제목이 나오는 곳부터 limit 글자를 돌려준다."""
+    start = text.find(title.strip()[:15]) if len(title.strip()) >= 8 else -1
+    return text[max(start, 0) :][:limit]
+
+
+def make_source(name: str, url: str, kind: str, text: str, published: str = "") -> dict:
+    return {"name": name, "url": url, "kind": kind, "text": text, "published": published}
+
+
+def find_cross_sources(primary: dict, title: str, query: str, pool: list[dict], now: datetime) -> list[dict]:
+    """같은 소식을 다룬 '다른 곳'의 글을 찾아 본문까지 가져온다. 수집 목록에서 제목이 비슷한 글과,
+    뉴스 검색(관련도순) 결과에서 고른다. 주 출처와 도메인이 같은 글은 독립 출처가 아니라서 뺀다."""
+    cutoff = now - timedelta(days=CROSS_SOURCE_DAYS)
+    # 검색 결과에는 무관한 기사도 섞여 오므로, 검색어의 핵심 단어가 실제로 나오는 글만 쓴다.
+    keywords = {w.lower() for w in re.findall(r"[0-9A-Za-z가-힣]{2,}", query or title)}
+    keywords -= {"포켓몬", "카드", "포켓몬카드", "pokemon", "pokémon", "tcg", "cards", "card"}
+    needed = min(2, len(keywords))
+
+    def mentions(text: str) -> bool:
+        return sum(word in text.lower() for word in keywords) >= needed
+
+    related = [
+        i for i in pool
+        if topic_similarity(title, i["title"]) >= CROSS_TITLE_SIMILARITY or (needed and mentions(f"{i['title']} {i['summary']}"))
+    ]
+    for search in filter(None, [query.strip(), title.strip()[:60]]):
+        try:
+            market = "en-US" if re.fullmatch(r"[\x00-\x7f]+", search) else "ko-KR"
+            related += fetch_bing_news(search, market, newest=False)[:8]
+        except Exception as e:  # noqa: BLE001
+            print(f"⚠️  교차 검증용 검색 실패({search[:30]}): {type(e).__name__}", file=sys.stderr)
+
+    seen_hosts = {host_of(primary["url"])}
+    for other in related:  # 공식 사이트 글은 어느 경로로 찾았든 공식 출처로 취급하고 먼저 본다
+        if host_of(other["url"]).endswith(OFFICIAL_HOSTS):
+            other["kind"] = "official"
+    related.sort(key=lambda i: i["kind"] != "official")
+    sources = []
+    for other in related:
+        host = host_of(other["url"])
+        # 블로그·SNS 글은 소식의 실마리는 되지만 다른 글을 확인해 주는 근거로는 쓰지 않는다.
+        if host in seen_hosts or host.endswith(AGGREGATOR_HOSTS) or other["kind"] in (*SOCIAL_KINDS, "blog"):
+            continue
+        if other["published"] and other["published"] < cutoff:
+            continue
+        page = fetch_page(other["url"])
+        if not page["ok"] or len(page["text"]) < 300:
+            continue
+        if page["published_date"] and (now.date() - page["published_date"]).days > CROSS_SOURCE_DAYS:
+            continue
+        if not mentions(page["text"]):
+            continue
+        seen_hosts.add(host)
+        stamp = f"{other['published'].astimezone(KST):%Y-%m-%d}" if other["published"] else ""
+        sources.append(
+            make_source(other["source"], other["url"], other["kind"], article_slice(page["text"], other["title"], 3000), stamp)
+        )
+        if len(sources) >= MAX_CROSS_SOURCES:
+            break
+    return sources
+
+
+def format_sources(sources: list[dict]) -> str:
+    blocks = []
+    for index, source in enumerate(sources):
+        role = "주 출처" if index == 0 else "교차 확인용"
+        official = " · 공식" if source["kind"] == "official" else ""
+        blocks.append(
+            f"[출처 {index} — {role}{official}] {source['name']} · 게시 {source['published'] or '불명'}\n"
+            f"\"\"\"\n{source['text']}\n\"\"\""
+        )
+    return "\n\n".join(blocks)
+
+
+def related_past_posts(title: str, history: list[dict], today: date) -> str:
+    """같은 소재로 우리가 이미 올린 글 (새 글이 과거 글과 날짜·가격이 어긋나지 않게 참고시킨다)."""
+    lines = []
+    for entry in recent_history(history, today):
+        label = f"{entry.get('topic', '')} {entry.get('event_key', '')}"
+        if topic_similarity(title, label) >= 0.3:
+            body = entry.get("text") or entry.get("hook", "")
+            lines.append(f"- [{entry.get('posted_at', '')[:10]}] {entry.get('topic', '')} :: {body[:300]}")
+    return "\n".join(lines[-5:])
+
+
+def write_post(title: str, sources: list[dict], history: list[dict], now: datetime, feedback: str = "") -> dict:
+    """출처 본문들만 근거로 포스트를 쓰게 한다 (웹 검색 없음 — 출처에 없는 내용은 못 쓴다)."""
     recent = recent_history(history, now.date())
     posted = "\n".join(f"- [{e.get('posted_at', '')[:10]}] {e.get('topic', '')}" for e in recent[-40:])
     hooks = "\n".join(f"- {e.get('hook', '')[:80]}" for e in recent[-8:] if e.get("hook"))
-    published = item["published"].astimezone(KST) if item["published"] else None
-    stamp = f"{published:%Y-%m-%d}" + ("" if item["dated_by_day"] else f" {published:%H:%M} KST") if published else "불명"
+    related = related_past_posts(title, history, now.date())
     weekday = "월화수목금토일"[now.weekday()]
+    retry = f"\n앞서 쓴 글이 사실 대조에서 걸렸어. 아래 문제를 모두 고쳐서 다시 써 (해당 내용은 빼는 게 원칙):\n{feedback}\n" if feedback else ""
     user = f"""\
 현재 시각: {now:%Y-%m-%d}({weekday}) {now:%H:%M} KST
 
-아래 '원문'을 근거로 Threads 포스트 1개를 써줘. 이번에는 웹 검색을 하지 않아. 원문에 적힌 사실만 쓰고,
-원문에 없는 날짜·가격·수량·장소·요일은 절대 덧붙이지 마. 날짜는 원문 표기를 따르되 연도가 헷갈리지
-않게 써. 출처 매체명({item['source']})은 본문에 언급하고 URL은 넣지 마.
+아래 출처들을 근거로 Threads 포스트 1개를 써줘. 이번에는 웹 검색을 하지 않아.
+{retry}
+사실 규칙 (교차 검증):
+- 날짜·가격·수량·장소·이름 같은 구체적 사실은 (a) 공식 출처에 있거나 (b) 서로 다른 출처 두 곳 이상에서
+  일치할 때만 써. 한 곳에만 있는 수치는 빼.
+- 출처끼리 서로 다르게 적은 사실(예: 발매일·가격이 다름)은 쓰지 마. 그게 소식의 핵심이면 postable 을
+  false 로 해.
+- 사진 설명 한 줄, 한 매장의 사례를 전체 일인 것처럼 넓혀 쓰지 마 ("○○점에서 촬영"을 "○○점에서 출시"로
+  바꾸는 식의 왜곡 금지).
+- '우리가 이미 올린 관련 글'과 날짜·가격이 다르면, 이번 출처들로 확인되는 쪽만 써. 확인이 안 되면 그 수치는 빼.
+- 어느 출처에도 없는 날짜·요일·수치는 절대 덧붙이지 마. 연도가 헷갈리지 않게 쓰고, 출처 매체명은 본문에
+  언급하되 URL은 넣지 마.
 
 다음 중 하나라도 해당하면 쓰지 말고 postable 을 false 로 해:
-- 원문이 포켓몬 카드 소식이 아니거나, 새로 일어난 일 없이 해설·칼럼·꿀팁·리뷰·광고뿐이다
-- 원문에 구체적 사실(무엇을·언제·어디서·얼마)이 부족해서 소식으로 쓸 수 없다
+- 포켓몬 카드 소식이 아니거나, 새로 일어난 일 없이 해설·칼럼·꿀팁·리뷰·광고뿐이다
+- 확인된 구체적 사실(무엇을·언제·어디서·얼마)이 부족해서 소식으로 쓸 수 없다
 - 이미 끝난 일정이거나 오늘 올리기엔 시의성이 없다
 - '이미 게시한 소식'과 같은 소식이다 (게시일 이후의 새로운 발표가 핵심인 경우는 제외)
 
-원문 출처: {item['source']} ({item['kind']})
-원문 게시 시각: {stamp}
-원문 제목: {item['title']}
-원문:
-\"\"\"
-{content}
-\"\"\"
+소식 제목: {title}
+
+{format_sources(sources)}
+
+우리가 이미 올린 관련 글:
+{related or '(없음)'}
 
 이미 게시한 소식:
 {posted or '(없음)'}
@@ -897,6 +1018,95 @@ def write_post(item: dict, content: str, history: list[dict], now: datetime) -> 
 }}
 """
     return ask_json(SYSTEM_PROMPT, user)
+
+
+VERIFY_SYSTEM_PROMPT = """\
+너는 뉴스 채널의 팩트체커야. 게시 직전의 포스트를 출처 원문과 한 줄씩 대조해. 글을 고치거나 좋게
+봐주는 게 아니라, 틀리거나 근거 없는 내용을 잡아내는 게 일이야. 의심스러우면 문제로 적어.
+
+할 일:
+1. 포스트에 들어 있는 사실 주장을 빠짐없이 뽑아 (날짜, 요일, 가격, 수량, 장소, 사람·회사·제품 이름,
+   "누가 무엇을 했다/한다").
+2. 주장마다 그 내용이 실제로 적혀 있는 출처 번호를 전부 적어. 출처에 그 내용이 글자로 확인될 때만
+   넣고, 짐작으로 넣지 마.
+3. 출처끼리 그 주장에 대해 서로 다른 값을 적고 있으면 conflict 에 무엇이 어떻게 다른지 적어.
+4. 포스트가 출처를 왜곡했으면 (한 매장 사례를 전체로 확대, 예정을 완료로, 추정을 확정으로 등)
+   distortion 에 적어.
+5. core 에는 이 소식의 핵심 주장(무엇이 언제 일어났다/일어난다) 하나를 적고, 그걸 뒷받침하는 출처
+   번호를 적어. 같은 통신사 기사를 그대로 옮겨 실은 글은 하나의 출처로 쳐서 대표 하나만 적어.
+"""
+
+
+def verify_post(posts: list[str], sources: list[dict], now: datetime) -> dict:
+    """완성된 포스트를 출처들과 대조시키고, 게시해도 되는지 코드로 판정한다.
+    {"ok": bool, "problems": [...], "confirmed_by": [출처 번호...]} 를 돌려준다."""
+    weekday = "월화수목금토일"[now.weekday()]
+    user = f"""\
+현재 시각: {now:%Y-%m-%d}({weekday}) {now:%H:%M} KST
+
+포스트:
+\"\"\"
+{chr(10).join(posts)}
+\"\"\"
+
+{format_sources(sources)}
+
+다음 JSON 형식으로만 응답해:
+{{
+  "claims": [{{"claim": "포스트의 사실 주장", "supported_by": [출처 번호], "conflict": "출처 간 불일치 (없으면 빈 문자열)", "distortion": "왜곡 (없으면 빈 문자열)"}}],
+  "core": {{"claim": "핵심 주장", "supported_by": [출처 번호]}}
+}}
+"""
+    result = ask_json(VERIFY_SYSTEM_PROMPT, user)
+
+    def valid(indices) -> list[int]:
+        return sorted({i for i in indices or [] if isinstance(i, int) and 0 <= i < len(sources)})
+
+    problems = []
+    for claim in result.get("claims") or []:
+        text = str(claim.get("claim", ""))[:80]
+        if not valid(claim.get("supported_by")):
+            problems.append(f"출처에 없는 내용: {text}")
+        if claim.get("conflict"):
+            problems.append(f"출처 간 불일치: {text} — {str(claim['conflict'])[:120]}")
+        if claim.get("distortion"):
+            problems.append(f"왜곡: {text} — {str(claim['distortion'])[:120]}")
+
+    core = valid((result.get("core") or {}).get("supported_by"))
+    official = any(sources[i]["kind"] == "official" for i in core)
+    independent = len({host_of(sources[i]["url"]) for i in core})
+    if not result.get("claims"):
+        problems.append("사실 대조 결과를 받지 못함")
+    elif not official and independent < 2:
+        problems.append(f"핵심 사실을 확인해 준 독립 출처가 {independent}곳뿐 (공식 출처 또는 2곳 이상 필요)")
+    return {"ok": not problems, "problems": problems, "confirmed_by": core}
+
+
+def write_verified_post(
+    title: str, sources: list[dict], history: list[dict], now: datetime, mode: str
+) -> tuple[dict | None, str]:
+    """쓰기 → 사실 대조 → (문제 있으면 한 번 고쳐 쓰기 → 다시 대조). 통과하면 (후보, 요약), 아니면 (None, 사유)."""
+    if sources[0]["kind"] != "official" and len(sources) < 2:
+        return None, "교차 확인할 다른 출처를 찾지 못함"
+
+    feedback = ""
+    for attempt in (1, 2):
+        candidate = write_post(title, sources, history, now, feedback)
+        posts = [p.strip() for p in candidate.get("threads_posts") or [] if isinstance(p, str) and p.strip()]
+        if not candidate.get("postable") or not posts:
+            return None, candidate.get("reason") or "포스트 없음"
+        candidate["threads_posts"] = posts
+
+        weekday_error = find_weekday_error("\n".join(posts), now.date())
+        verdict = verify_post(posts, sources, now)
+        problems = verdict["problems"] + ([f"요일이 달력과 안 맞음: {weekday_error}"] if weekday_error else [])
+        if not problems:
+            used = [sources[i] for i in verdict["confirmed_by"]]
+            candidate["cross_sources"] = [{"name": s["name"], "url": s["url"]} for s in used]
+            return candidate, "교차 확인: " + ", ".join(s["name"] for s in used)
+        print(f"ℹ️  [{mode}] 사실 대조 {attempt}차 불통과 — " + " / ".join(problems)[:400])
+        feedback = "\n".join(f"- {p}" for p in problems)
+    return None, "사실 대조를 통과하지 못함"
 
 
 def select_from_sources(mode: str, state: dict) -> tuple[dict, dict] | None:
@@ -935,39 +1145,58 @@ def select_from_sources(mode: str, state: dict) -> tuple[dict, dict] | None:
             continue
         # SNS 글은 로그인 벽 때문에 원문 페이지를 못 여니 수집 때 받은 본문(글 전문/캡션)을 쓴다.
         social = item["kind"] in SOCIAL_KINDS
-        content = item["summary"] if social or not (page["ok"] and len(page["text"]) >= 300) else page["text"]
+        if social or not (page["ok"] and len(page["text"]) >= 300):
+            content = item["summary"]
+        else:
+            content = article_slice(page["text"], item["title"], 5000)
         if len(content) < MIN_CONTENT_CHARS:
             print(f"ℹ️  [{mode}] 탈락 — {label} · 원문 본문을 확보하지 못함")
             continue
 
-        candidate = write_post(item, content[:6000], history, now)
-        posts = [p.strip() for p in candidate.get("threads_posts") or [] if isinstance(p, str) and p.strip()]
-        if not candidate.get("postable") or not posts:
-            print(f"ℹ️  [{mode}] 탈락 — {label} · {candidate.get('reason') or '포스트 없음'}")
+        published = item["published"].astimezone(KST) if item["published"] else None
+        stamp = f"{published:%Y-%m-%d}" + ("" if item["dated_by_day"] else f" {published:%H:%M}") if published else ""
+        primary = make_source(item["source"], item["url"], item["kind"], content, stamp)
+        sources = [primary] + find_cross_sources(primary, item["title"], pick["query"], items, now)
+        candidate, note = write_verified_post(item["title"], sources, history, now, mode)
+        if not candidate:
+            print(f"ℹ️  [{mode}] 탈락 — {label} · {note}")
             continue
         candidate.update(source_url=item["url"], source_name=item["source"])
 
         problem = find_duplicate({**candidate, "source_url": ""}, history, now.date())
-        weekday_error = find_weekday_error("\n".join(posts), now.date())
-        if weekday_error:
-            problem = f"본문 요일이 달력과 안 맞음: {weekday_error}"
         if problem:
             print(f"ℹ️  [{mode}] 탈락 — {label} · {problem}")
             continue
 
-        print(f"ℹ️  [{mode}] 선정 — {label} · {item_age_label(item, now)} · {pick['why'][:80]}")
+        print(f"ℹ️  [{mode}] 선정 — {label} · {item_age_label(item, now)} · {note}")
         page["image_url"] = page["image_url"] or item["image"]
         base_date = (item["published"].astimezone(KST) if item["published"] else now).date().isoformat()
-        return candidate, {"posts": posts, "page": page, "base_date": base_date}
+        return candidate, {"posts": candidate["threads_posts"], "page": page, "base_date": base_date}
     return None
 
 
 def select_from_web_search(mode: str, history: list[dict]) -> tuple[dict, dict] | None:
+    """웹 검색 후보 중 날짜·중복 검증을 통과한 것을, 다른 출처와 대조해 다시 써서 돌려준다."""
+    now = datetime.now(KST)
     candidates = generate(mode, history)
     selected = select_candidate(candidates, history, mode)
     if not selected:
         print(f"ℹ️  [{mode}] 웹 검색 후보 {len(candidates)}개 중 최신성·중복 검증을 통과한 소식이 없어요.")
-    return selected
+        return None
+    data, verified = selected
+    title = data.get("topic", "")
+    kind = "official" if host_of(data.get("source_url", "")).endswith(OFFICIAL_HOSTS) else "news"
+    primary = make_source(
+        data.get("source_name", ""), data.get("source_url", ""), kind, article_slice(verified["page"]["text"], title, 5000)
+    )
+    sources = [primary] + find_cross_sources(primary, title, data.get("event_key", ""), [], now)
+    candidate, note = write_verified_post(title, sources, history, now, mode)
+    if not candidate:
+        print(f"ℹ️  [{mode}] 탈락 — {title[:50]} · {note}")
+        return None
+    print(f"ℹ️  [{mode}] 선정(웹 검색) — {title[:50]} · {note}")
+    candidate.update(source_url=data.get("source_url", ""), source_name=data.get("source_name", ""))
+    return candidate, {**verified, "posts": candidate["threads_posts"]}
 
 
 def write_outputs(selected: tuple[dict, dict], mode: str) -> tuple[Path, Path]:
@@ -999,6 +1228,7 @@ def write_outputs(selected: tuple[dict, dict], mode: str) -> tuple[Path, Path]:
                 "published_date": verified["base_date"],
                 "source_name": data.get("source_name", ""),
                 "source_url": data.get("source_url", ""),
+                "cross_sources": data.get("cross_sources", []),
                 "image_url": image_url,
                 "image_source": image_source,
                 "mode": mode,

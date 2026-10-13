@@ -103,6 +103,10 @@ jobs:
             else
               echo "- **출처**: $SOURCE_NAME"
             fi
+            CROSS=$(jq -r '[.cross_sources[]? | "[\(.name)](\(.url))"] | join(", ")' "$META_FILE")
+            if [ -n "$CROSS" ]; then
+              echo "- **교차 확인**: $CROSS"
+            fi
             echo "- **모드**: $MODE"
             echo "- **생성 시각(KST)**: $GENERATED_AT"
           } > "$BODY_FILE"

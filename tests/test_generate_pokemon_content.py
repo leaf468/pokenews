@@ -151,5 +151,50 @@ class FreshItemsTest(unittest.TestCase):
         self.assertEqual(self.urls(items, "scheduled", state), ["https://a.kr/2", "https://a.kr/3"])
 
 
+class VerifyPostTest(unittest.TestCase):
+    now = datetime(2026, 10, 14, 9, 0, tzinfo=g.KST)
+    news_a = g.make_source("뉴스A", "https://www.a-news.kr/1", "news", "본문")
+    news_a2 = g.make_source("뉴스A 모바일", "https://m.a-news.kr/2", "news", "본문")
+    news_b = g.make_source("뉴스B", "https://b-news.kr/9", "news", "본문")
+    official = g.make_source("포켓몬코리아", "https://pokemonkorea.co.kr/news/2/1", "official", "본문")
+
+    def verdict(self, sources, claims, core):
+        original = g.ask_json
+        g.ask_json = lambda system, user: {"claims": claims, "core": {"claim": "핵심", "supported_by": core}}
+        try:
+            return g.verify_post(["포스트"], sources, self.now)
+        finally:
+            g.ask_json = original
+
+    def claim(self, supported_by, conflict="", distortion=""):
+        return {"claim": "10월 24일 입고", "supported_by": supported_by, "conflict": conflict, "distortion": distortion}
+
+    def test_two_independent_sources_pass(self):
+        self.assertTrue(self.verdict([self.news_a, self.news_b], [self.claim([0, 1])], [0, 1])["ok"])
+
+    def test_single_news_source_fails(self):
+        self.assertFalse(self.verdict([self.news_a, self.news_b], [self.claim([0])], [0])["ok"])
+
+    def test_same_site_twice_is_not_independent(self):
+        self.assertFalse(self.verdict([self.news_a, self.news_a2], [self.claim([0, 1])], [0, 1])["ok"])
+
+    def test_official_source_alone_passes(self):
+        self.assertTrue(self.verdict([self.official], [self.claim([0])], [0])["ok"])
+
+    def test_unsupported_conflicting_or_distorted_claims_fail(self):
+        sources = [self.news_a, self.news_b]
+        self.assertFalse(self.verdict(sources, [self.claim([0, 1]), self.claim([])], [0, 1])["ok"])
+        self.assertFalse(self.verdict(sources, [self.claim([0, 1], conflict="A는 10/24, B는 이번 주")], [0, 1])["ok"])
+        self.assertFalse(self.verdict(sources, [self.claim([0, 1], distortion="한 매장을 전체로 확대")], [0, 1])["ok"])
+
+    def test_out_of_range_source_numbers_are_ignored(self):
+        self.assertFalse(self.verdict([self.news_a, self.news_b], [self.claim([0, 7])], [0, 7])["ok"])
+
+    def test_single_non_official_source_is_rejected_before_writing(self):
+        candidate, reason = g.write_verified_post("제목", [self.news_a], [], self.now, "scheduled")
+        self.assertIsNone(candidate)
+        self.assertIn("다른 출처", reason)
+
+
 if __name__ == "__main__":
     unittest.main()

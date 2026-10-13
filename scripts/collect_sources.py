@@ -155,13 +155,14 @@ def fetch_pokemonkorea() -> list[dict]:
     return items
 
 
-def fetch_bing_news(query: str, market: str) -> list[dict]:
-    """Bing 뉴스 RSS 최신순. 링크가 Bing 경유 주소라 url 파라미터에서 원문 주소를 꺼낸다."""
+def fetch_bing_news(query: str, market: str, newest: bool = True) -> list[dict]:
+    """Bing 뉴스 RSS (기본 최신순, newest=False 면 관련도순). 링크가 Bing 경유 주소라 url 파라미터에서
+    원문 주소를 꺼낸다."""
     lang, country = market.split("-")
-    resp = get(
-        "https://www.bing.com/news/search",
-        params={"q": query, "format": "rss", "qft": 'sortbydate="1"', "setlang": lang, "cc": country},
-    )
+    params = {"q": query, "format": "rss", "setlang": lang, "cc": country}
+    if newest:
+        params["qft"] = 'sortbydate="1"'
+    resp = get("https://www.bing.com/news/search", params=params)
     items = []
     for block in re.findall(r"<item>(.*?)</item>", resp.text, re.S):
         link = unescape(clean(tag(block, "link")))
