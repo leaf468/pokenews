@@ -86,6 +86,8 @@ MAX_RANK_ITEMS = 60
 MIN_CONTENT_CHARS = 120
 # 이 도메인의 글은 그 자체로 공식 출처로 본다 (교차 확인 없이도 핵심 사실로 인정).
 OFFICIAL_HOSTS = ("pokemonkorea.co.kr", "pokemoncard.co.kr", "pokemonstore.co.kr", "pokemon.com", "pokemon.co.jp", "pokemon-card.com")
+# 한 번 실행에서 교차 검증까지 시도하는 후보 수 (후보 하나에 모델 호출이 2~5번 든다).
+MAX_VERIFY_ATTEMPTS = 3
 # 교차 검증에 쓰는 보조 출처 수와, 같은 소식을 다룬 글로 보는 기간.
 MAX_CROSS_SOURCES = 3
 CROSS_SOURCE_DAYS = 7
@@ -826,15 +828,32 @@ threads·x·instagram 글은 개인이 쓴 것일 수 있어. 공식 계정·매
 
 같은 소식을 여러 글이 다루면 가장 원문에 가깝고 자세한 글 하나만 골라.
 
+고른 글은 다른 매체 기사나 공식 공지로 교차 확인이 돼야 게시돼. 목록의 "다른 매체 N곳"이 0인 글은
+교차 확인이 어려우니, 비슷한 가치라면 공식 공지이거나 여러 매체가 다룬 소식을 먼저 골라.
+
 breaking 은 "최근 하루 안에 새로 일어났거나 발표된 일이고, 독자가 몇 시간 늦게 알면 손해인 소식"일
 때만 true 로 해. 재미는 있지만 급하지 않은 소식은 false 야.
 """
 
 
-def rank_items(items: list[dict], history: list[dict], now: datetime) -> list[dict]:
+def coverage_count(item: dict, pool: list[dict]) -> int:
+    """같은 소식을 다룬 것으로 보이는 다른 매체 글 수 (제목 유사도 기준, 교차 검증 가능성의 힌트)."""
+    outlets = {
+        re.sub(r"\s+", "", other["source"]).lower()
+        for other in pool
+        if other is not item
+        and other["source"] != item["source"]
+        and other["kind"] not in (*SOCIAL_KINDS, "blog")
+        and topic_similarity(item["title"], other["title"]) >= 0.35
+    }
+    return len(outlets)
+
+
+def rank_items(items: list[dict], history: list[dict], now: datetime, pool: list[dict] | None = None) -> list[dict]:
     """모델에게 수집 글 목록을 보여주고 올릴 만한 글을 순서대로 고르게 한다."""
+    pool = pool or items
     listing = "\n".join(
-        f"[{i}] ({item['kind']} · {item['source']} · {item_age_label(item, now)}) {item['title']}"
+        f"[{i}] ({item['kind']} · {item['source']} · {item_age_label(item, now)} · 다른 매체 {coverage_count(item, pool)}곳) {item['title']}"
         + (f" — {item['summary'][:160]}" if item["summary"] else "")
         for i, item in enumerate(items)
     )
@@ -1036,18 +1055,21 @@ def write_post(title: str, sources: list[dict], history: list[dict], now: dateti
 
 
 VERIFY_SYSTEM_PROMPT = """\
-너는 뉴스 채널의 팩트체커야. 게시 직전의 포스트를 출처 원문과 한 줄씩 대조해. 글을 고치거나 좋게
-봐주는 게 아니라, 틀리거나 근거 없는 내용을 잡아내는 게 일이야. 의심스러우면 문제로 적어.
+너는 뉴스 채널의 팩트체커야. 게시 직전의 포스트를 출처 원문과 대조해서, 독자를 잘못 이끌 수 있는
+오류를 잡아내는 게 일이야. 표기 차이를 트집 잡는 게 아니라 "틀린 정보가 나가는 것"을 막는 게 목적이야.
 
 할 일:
-1. 포스트에 들어 있는 사실 주장을 빠짐없이 뽑아 (날짜, 요일, 가격, 수량, 장소, 사람·회사·제품 이름,
-   "누가 무엇을 했다/한다").
-2. 주장마다 그 내용이 실제로 적혀 있는 출처 번호를 전부 적어. 출처에 그 내용이 글자로 확인될 때만
-   넣고, 짐작으로 넣지 마.
-3. 출처끼리 그 주장에 대해 서로 다른 값을 적고 있으면 conflict 에 무엇이 어떻게 다른지 적어.
-4. 포스트가 출처를 왜곡했으면 (한 매장 사례를 전체로 확대, 예정을 완료로, 추정을 확정으로 등)
-   distortion 에 적어.
-5. core 에는 이 소식의 핵심 주장(무엇이 언제 일어났다/일어난다) 하나를 적고, 그걸 뒷받침하는 출처
+1. 포스트에서 소식에 관한 사실 주장을 뽑아 (날짜, 가격, 수량, 장소, 사람·회사·제품 이름, "누가 무엇을
+   했다/한다"). "출처: ○○", "자세한 건 공지를 확인하세요", "~할 전망" 같은 안내·전망·출처 표기 문장은
+   사실 주장이 아니니 뽑지 마.
+2. 주장마다 그 내용이 적혀 있는 출처 번호를 전부 적어. 같은 뜻이면 표현이 달라도 뒷받침한 것으로 봐.
+3. 문제가 있으면 problem 에 적고 severity 를 정해:
+   - major: 출처에 없는 사실을 지어냄 / 출처끼리 날짜·시간·가격·수량·장소·대상이 실제로 다름 /
+     포스트가 출처를 왜곡함 (한 매장 사례를 전체로, 예정을 완료로, 추정을 확정으로, 다른 제품으로)
+   - minor: 표기·번역·띄어쓰기 차이 (e스포츠/이스포츠, LINE Yahoo/Yahoo), 한 출처가 더 자세할 뿐인 경우,
+     반올림, 보도 날짜가 하루 다른 것처럼 소식의 사실이 바뀌지 않는 차이
+   문제가 없으면 problem 은 빈 문자열.
+4. core 에는 이 소식의 핵심 주장(무엇이 언제 일어났다/일어난다) 하나를 적고, 그걸 뒷받침하는 출처
    번호를 적어. 같은 통신사 기사를 그대로 옮겨 실은 글은 하나의 출처로 쳐서 대표 하나만 적어.
 """
 
@@ -1068,7 +1090,7 @@ def verify_post(posts: list[str], sources: list[dict], now: datetime) -> dict:
 
 다음 JSON 형식으로만 응답해:
 {{
-  "claims": [{{"claim": "포스트의 사실 주장", "supported_by": [출처 번호], "conflict": "출처 간 불일치 (없으면 빈 문자열)", "distortion": "왜곡 (없으면 빈 문자열)"}}],
+  "claims": [{{"claim": "포스트의 사실 주장", "supported_by": [출처 번호], "problem": "문제 설명 (없으면 빈 문자열)", "severity": "major 또는 minor (문제 없으면 빈 문자열)"}}],
   "core": {{"claim": "핵심 주장", "supported_by": [출처 번호]}}
 }}
 """
@@ -1080,12 +1102,10 @@ def verify_post(posts: list[str], sources: list[dict], now: datetime) -> dict:
     problems = []
     for claim in result.get("claims") or []:
         text = str(claim.get("claim", ""))[:80]
-        if not valid(claim.get("supported_by")):
+        if claim.get("problem") and str(claim.get("severity", "")).lower() != "minor":
+            problems.append(f"{text} — {str(claim['problem'])[:140]}")
+        elif not valid(claim.get("supported_by")):
             problems.append(f"출처에 없는 내용: {text}")
-        if claim.get("conflict"):
-            problems.append(f"출처 간 불일치: {text} — {str(claim['conflict'])[:120]}")
-        if claim.get("distortion"):
-            problems.append(f"왜곡: {text} — {str(claim['distortion'])[:120]}")
 
     core = valid((result.get("core") or {}).get("supported_by"))
     official = any(sources[i]["kind"] == "official" for i in core)
@@ -1101,7 +1121,7 @@ def write_verified_post(
     title: str, sources: list[dict], history: list[dict], now: datetime, mode: str
 ) -> tuple[dict | None, str]:
     """쓰기 → 사실 대조 → (문제 있으면 한 번 고쳐 쓰기 → 다시 대조). 통과하면 (후보, 요약), 아니면 (None, 사유)."""
-    if sources[0]["kind"] != "official" and len(sources) < 2:
+    if len(sources) < 2 and (sources[0]["kind"] != "official" or len(sources[0]["text"]) < MIN_CONTENT_CHARS * 2):
         return None, "교차 확인할 다른 출처를 찾지 못함"
 
     feedback = ""
@@ -1143,7 +1163,7 @@ def select_from_sources(mode: str, state: dict) -> tuple[dict, dict] | None:
     if not fresh:
         return None
 
-    picks = rank_items(fresh, history, now)
+    picks = rank_items(fresh, history, now, items)[:MAX_VERIFY_ATTEMPTS]
     if not picks:
         print(f"ℹ️  [{mode}] 모델이 올릴 만한 글이 없다고 판단했어요.")
 
@@ -1164,7 +1184,10 @@ def select_from_sources(mode: str, state: dict) -> tuple[dict, dict] | None:
             content = item["summary"]
         else:
             content = article_slice(page["text"], item["title"], 5000)
-        if len(content) < MIN_CONTENT_CHARS:
+        if len(content) < MIN_CONTENT_CHARS and item["kind"] == "official":
+            # 공식 공지는 본문이 이미지라 글자가 거의 없다. 제목·작성일만 공식 근거로 쓰고 내용은 언론 보도로 채운다.
+            content = f"(공식 공지 — 본문은 이미지라 텍스트 없음) 제목: {item['title']} / 게시일: {item['published']:%Y-%m-%d}"
+        elif len(content) < MIN_CONTENT_CHARS:
             print(f"ℹ️  [{mode}] 탈락 — {label} · 원문 본문을 확보하지 못함")
             continue
 

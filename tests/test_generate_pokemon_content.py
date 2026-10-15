@@ -166,8 +166,8 @@ class VerifyPostTest(unittest.TestCase):
         finally:
             g.ask_json = original
 
-    def claim(self, supported_by, conflict="", distortion=""):
-        return {"claim": "10월 24일 입고", "supported_by": supported_by, "conflict": conflict, "distortion": distortion}
+    def claim(self, supported_by, problem="", severity=""):
+        return {"claim": "10월 24일 입고", "supported_by": supported_by, "problem": problem, "severity": severity}
 
     def test_two_independent_sources_pass(self):
         self.assertTrue(self.verdict([self.news_a, self.news_b], [self.claim([0, 1])], [0, 1])["ok"])
@@ -184,11 +184,22 @@ class VerifyPostTest(unittest.TestCase):
     def test_unsupported_conflicting_or_distorted_claims_fail(self):
         sources = [self.news_a, self.news_b]
         self.assertFalse(self.verdict(sources, [self.claim([0, 1]), self.claim([])], [0, 1])["ok"])
-        self.assertFalse(self.verdict(sources, [self.claim([0, 1], conflict="A는 10/24, B는 이번 주")], [0, 1])["ok"])
-        self.assertFalse(self.verdict(sources, [self.claim([0, 1], distortion="한 매장을 전체로 확대")], [0, 1])["ok"])
+        self.assertFalse(self.verdict(sources, [self.claim([0, 1], "A는 10/24, B는 이번 주", "major")], [0, 1])["ok"])
+        self.assertFalse(self.verdict(sources, [self.claim([0, 1], "한 매장을 전체로 확대", "major")], [0, 1])["ok"])
+
+    def test_minor_notation_differences_do_not_block(self):
+        sources = [self.news_a, self.news_b]
+        claims = [self.claim([0, 1], "e스포츠/이스포츠 표기 차이", "minor")]
+        self.assertTrue(self.verdict(sources, claims, [0, 1])["ok"])
 
     def test_out_of_range_source_numbers_are_ignored(self):
         self.assertFalse(self.verdict([self.news_a, self.news_b], [self.claim([0, 7])], [0, 7])["ok"])
+
+    def test_official_notice_without_text_still_needs_news_coverage(self):
+        notice = g.make_source("포켓몬코리아", "https://pokemoncard.co.kr/_news?id=1", "official", "(공식 공지) 제목")
+        candidate, reason = g.write_verified_post("제목", [notice], [], self.now, "scheduled")
+        self.assertIsNone(candidate)
+        self.assertIn("다른 출처", reason)
 
     def test_single_non_official_source_is_rejected_before_writing(self):
         candidate, reason = g.write_verified_post("제목", [self.news_a], [], self.now, "scheduled")

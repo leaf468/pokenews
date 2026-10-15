@@ -121,39 +121,56 @@ def parse_iso(value: str) -> datetime | None:
     return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
 
 
+# 같은 공지 DB를 두 사이트가 나눠 보여준다. 카드 게임 사이트 쪽이 더 빨리 갱신되고, 포켓몬코리아
+# 쪽은 GitHub 서버에서 410으로 막힐 때가 있어서 둘 다 시도한다.
+OFFICIAL_NEWS_ENDPOINTS = [
+    ("https://pokemoncard.co.kr", "/v3/news_ajax"),
+    ("https://www.pokemonkorea.co.kr", "/ajax/news"),
+]
+
+
 def fetch_pokemonkorea() -> list[dict]:
-    """포켓몬코리아 공식 소식 목록. 목록은 페이지가 아니라 /ajax/news 로 내려온다."""
-    base = "https://www.pokemonkorea.co.kr"
-    resp = get(
-        f"{base}/ajax/news",
-        method="POST",
-        data={"pn": "1", "cate": "0", "sword": "", "rcode": "menu_news"},
-        headers={"Referer": f"{base}/news", "X-Requested-With": "XMLHttpRequest"},
-    )
-    resp.encoding = "utf-8"
-    items = []
-    for block in re.findall(r'<li class="col-lg-3.*?</a>\s*</li>', resp.text, re.S):
-        href = re.search(r'<a href="([^"]+)"', block)
-        meta = tag(block, "ul")  # <li>분류</li><li>작성일</li> — 제목에도 날짜가 들어가므로 여기서만 읽는다
-        date = re.search(r"(20\d{2})년\s*(\d{1,2})월\s*(\d{1,2})일", meta)
-        if not href or not date:
-            continue
-        category = clean(tag(meta, "li"))
-        image = re.search(r'<img src="([^"]+)"', block)
-        url = urljoin(base, unescape(href.group(1)))
-        url = re.sub(r"\?cate=0&sword=$", "", url)
-        items.append(
-            make_item(
-                "official",
-                f"포켓몬코리아({category})" if category else "포켓몬코리아",
-                tag(block, "h3"),
-                url,
-                datetime(*map(int, date.groups()), tzinfo=KST),
-                image=image.group(1) if image else "",
-                dated_by_day=True,
+    """포켓몬코리아 공식 소식 목록. 목록은 페이지가 아니라 ajax 로 내려온다."""
+    items, errors = [], []
+    for base, path in OFFICIAL_NEWS_ENDPOINTS:
+        try:
+            resp = get(
+                f"{base}{path}",
+                method="POST",
+                data={"pn": "1", "cate": "0", "sword": "", "rcode": "menu_news"},
+                headers={"Referer": f"{base}/news", "X-Requested-With": "XMLHttpRequest"},
             )
-        )
-    return items
+        except requests.RequestException as e:
+            errors.append(f"{base}: {type(e).__name__}")
+            continue
+        resp.encoding = "utf-8"
+        for block in re.findall(r'<li class="col-lg-3.*?</a>\s*</li>', resp.text, re.S):
+            href = re.search(r'<a href="([^"]+)"', block)
+            meta = tag(block, "ul")  # <li>분류</li><li>작성일</li> — 제목에도 날짜가 들어가므로 여기서만 읽는다
+            date = re.search(r"(20\d{2})년\s*(\d{1,2})월\s*(\d{1,2})일", meta)
+            if not href or not date:
+                continue
+            category = clean(tag(meta, "li"))
+            image = re.search(r'<img src="([^"]+)"', block)
+            url = re.sub(r"\?cate=0&sword=$", "", urljoin(base, unescape(href.group(1))))
+            items.append(
+                make_item(
+                    "official",
+                    f"포켓몬코리아({category})" if category else "포켓몬코리아",
+                    tag(block, "h3"),
+                    url,
+                    datetime(*map(int, date.groups()), tzinfo=KST),
+                    image=image.group(1) if image else "",
+                    dated_by_day=True,
+                )
+            )
+    if not items and errors:
+        raise requests.RequestException("; ".join(errors))
+    # 두 사이트에 같은 공지가 다른 주소로 올라오므로 제목으로 한 번 더 거른다.
+    unique = {}
+    for item in items:
+        unique.setdefault(item["title"], item)
+    return list(unique.values())
 
 
 def fetch_bing_news(query: str, market: str, newest: bool = True) -> list[dict]:
