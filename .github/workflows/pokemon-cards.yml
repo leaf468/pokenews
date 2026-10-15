@@ -12,6 +12,12 @@ on:
           - scheduled
           - breaking
           - buyguide
+          - stockalert
+      payload:
+        description: 'stockalert 전용: 브라우저 감시기가 넘기는 입고 글 JSON'
+        required: false
+        default: ''
+        type: string
   schedule:
     # 정기 발행 4회 (한국시간 09/13/17/21시 = UTC 0/4/8/12시)
     - cron: '0 0,4,8,12 * * *'
@@ -23,7 +29,8 @@ on:
 
 # 정기 발행과 속보 체크가 겹쳐도 이력 파일을 동시에 고치지 않도록 한 번에 하나씩만 돈다.
 concurrency:
-  group: pokemon-cards-bot
+  # 입고 알림은 기다리지 않고 바로 돈다 (같은 그룹이면 대기 중인 실행이 새 실행에 밀려 취소된다).
+  group: ${{ inputs.mode == 'stockalert' && github.run_id || 'pokemon-cards-bot' }}
   cancel-in-progress: false
 
 jobs:
@@ -65,6 +72,7 @@ jobs:
         run: python scripts/generate_pokemon_content.py "${{ steps.mode.outputs.mode }}"
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          STOCK_ALERT_PAYLOAD: ${{ inputs.payload }}
           # 선택: 지켜볼 Threads 계정 목록(변수), X 검색·인스타그램 토큰이 있으면 그것도 수집한다.
           THREADS_ACCOUNTS: ${{ vars.THREADS_ACCOUNTS }}
           X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
@@ -89,6 +97,7 @@ jobs:
           case "$MODE" in
             scheduled) MODE_KO="정기" ;;
             buyguide) MODE_KO="구매정보" ;;
+            stockalert) MODE_KO="입고" ;;
             *) MODE_KO="속보" ;;
           esac
           TITLE="🃏 [$MODE_KO] ${TOPIC:0:80}"
@@ -142,7 +151,11 @@ jobs:
             else
               git commit -m "chore: 속보 판정 이력 갱신"
             fi
-            git fetch origin main
-            git rebase origin/main
-            git push origin main
+            # 입고 알림은 다른 실행과 동시에 돌 수 있어서, 밀리면 다시 받아 와서 몇 번 더 시도한다.
+            for attempt in 1 2 3 4; do
+              git fetch origin main
+              git rebase origin/main && git push origin main && break
+              git rebase --abort 2>/dev/null || true
+              sleep $((attempt * 5))
+            done
           fi

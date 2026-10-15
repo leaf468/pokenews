@@ -1,0 +1,19 @@
+{
+  "interval_minutes": 3,
+  "max_age_hours": 6,
+  "instagram_accounts": [
+    "pokemon_korea_official",
+    "gs25_official",
+    "cu_official",
+    "emart24_official",
+    "7elevenkorea"
+  ],
+  "instagram_hashtags": [
+    "포켓몬카드입고",
+    "포켓몬카드재입고"
+  ],
+  "threads_accounts": [],
+  "x_accounts": [
+    "PokemonKoreaInc"
+  ]
+}

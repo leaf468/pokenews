@@ -61,7 +61,7 @@ BLOG_FEEDS = [
 ]
 
 # 지켜볼 인스타그램 계정 (비즈니스/크리에이터 계정만 조회 가능). INSTAGRAM_ACCOUNTS 환경변수로 덮어쓴다.
-INSTAGRAM_ACCOUNTS = ["pokemon_korea", "pokemoncardgame_korea"]
+INSTAGRAM_ACCOUNTS = ["pokemon_korea_official", "gs25_official", "cu_official", "emart24_official", "7elevenkorea"]
 
 # 뉴스·블로그 검색 결과에는 무관한 글이 섞여 오므로 제목/요약에 이 단어가 있어야 한다.
 RELEVANT_RE = re.compile(r"포켓몬|pok[eé]mon|ポケモン|ポケカ", re.IGNORECASE)

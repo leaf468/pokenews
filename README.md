@@ -98,6 +98,23 @@ reports/pokemon_posted_state.json 만 커밋 & 푸시 (게시 이력 + 속보 �
 (본인 비즈니스 계정)와 변수 `INSTAGRAM_ACCOUNTS`가 있어야 소스에 들어간다. 매장 Threads 계정은 변수
 `THREADS_ACCOUNTS`에 넣으면 따로 지켜본다.
 
+## ⚡ 입고 알림 (브라우저 감시기, 이 컴퓨터에서 실행)
+
+인스타그램·X 는 로그인한 브라우저에만 게시물을 보여주므로, 매장 계정 입고 공지는 GitHub Actions 가 아니라
+이 컴퓨터에서 상시로 도는 [`scripts/watch_browser.py`](scripts/watch_browser.py) 가 본다.
+
+```bash
+python3 -m venv .venv && .venv/bin/pip install playwright requests openai && .venv/bin/python -m playwright install chromium
+.venv/bin/python scripts/watch_browser.py login            # 열린 창에서 인스타그램(·X) 로그인, 최초 1회
+caffeinate -i .venv/bin/python scripts/watch_browser.py run  # 잠자기 막고 계속 확인 (기본 3분 간격)
+```
+
+- 감시 대상·간격: [`scripts/watchlist.json`](scripts/watchlist.json) (인스타그램 계정·해시태그, Threads 계정, X 계정)
+- 새 글 중 6시간 이내이면서 "포켓몬"과 "입고·판매·추첨…" 이 함께 들어간 글을 찾으면 맥 알림을 띄우고,
+  워크플로를 `stockalert` 모드로 실행해 Threads 초안을 Issue 로 남긴다 (실패하면 원문 그대로 Issue)
+- 판매처가 직접 올린 공지라 교차 검증 대신 원문 대조만 한다
+- 로그인이 풀리면 맥 알림으로 알려준다. 로그인한 계정은 자동 접근으로 제한될 수 있어 감시용 계정을 권장
+
 ## 🔎 교차 검증
 
 고른 소식은 게시 전에 스스로 교차 검증한다. 기사 하나만 믿고 쓰면 그 기사의 오류(잘못 적힌 발매일,

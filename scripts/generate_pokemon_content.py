@@ -1453,6 +1453,67 @@ def select_buy_guide(state: dict) -> tuple[dict, dict] | None:
     return candidate, {"posts": posts, "page": page, "base_date": now.date().isoformat()}
 
 
+def select_stock_alert(state: dict) -> tuple[dict, dict] | None:
+    """브라우저 감시기(watch_browser.py)가 찾은 매장 계정의 입고 글 하나를 바로 Threads 글로 만든다.
+    판매처가 직접 올린 공지라 교차 검증 대신, 원문에 적힌 내용만 썼는지 대조만 한다 (속도 우선)."""
+    try:
+        post = json.loads(os.environ.get("STOCK_ALERT_PAYLOAD", ""))
+    except ValueError:
+        print("❌ stockalert: payload 가 JSON 이 아닙니다.", file=sys.stderr)
+        return None
+    now = datetime.now(KST)
+    duplicate = find_duplicate({"topic": "", "source_url": post.get("url", "")}, state["posts"], now.date())
+    if duplicate:
+        print(f"ℹ️  [stockalert] 건너뜀 — {duplicate}")
+        return None
+
+    platform = {"instagram": "인스타그램", "threads": "Threads", "x": "X"}.get(post.get("platform"), post.get("platform", ""))
+    name = f"{platform} @{post.get('account', '')}"
+    source = make_source(name, post.get("url", ""), "official", post.get("caption", ""), post.get("published", "")[:16])
+    weekday = "월화수목금토일"[now.weekday()]
+    user = f"""\
+현재 시각: {now:%Y-%m-%d}({weekday}) {now:%H:%M} KST
+
+매장(판매처) 계정이 방금 올린 글이야. 포켓몬 카드를 정가로 살 수 있는 입고·판매·추첨 공지라면, 독자가 바로
+따라 할 수 있게 Threads 포스트 1개로 써줘. 웹 검색은 하지 않아.
+
+- 첫 줄에 핵심(어디서·무엇이·언제)을 담아. 예: "CU, 오늘 오후 2시부터 포켓몬카드 30주년 확장팩 판매"
+- 원문에 있는 판매처·제품·날짜·시간·구매 제한·구매 방법만 써. 없는 내용은 지어내지 마.
+- "{name} 공지 기준"이라고 출처를 밝히고, "매장별 재고·일정은 다를 수 있어요" 한 줄을 넣어.
+- 리셀가·시세 이야기는 넣지 마. 전체 500자 이내, 마지막 줄에 해시태그 2~4개.
+- 포켓몬 카드 입고·판매 공지가 아니거나(다른 상품 홍보, 이미 끝난 판매), 언제·어디서가 없어 따라 할 수
+  없으면 postable 을 false 로 해.
+
+{format_sources([source])}
+
+다음 JSON 형식으로만 응답해:
+{{"postable": true 또는 false, "reason": "false 인 이유", "topic": "짧은 소재 요약", "threads_posts": ["포스트 전체 텍스트"]}}
+"""
+    result = ask_json(SYSTEM_PROMPT, user)
+    posts = [p.strip() for p in result.get("threads_posts") or [] if isinstance(p, str) and p.strip()]
+    if not result.get("postable") or not posts:
+        print(f"ℹ️  [stockalert] 건너뜀 — {result.get('reason') or '포스트 없음'}")
+        return None
+    verdict = verify_post(posts, [source], now, require_core=False)
+    weekday_error = find_weekday_error("\n".join(posts), now.date())
+    problems = verdict["problems"] + ([f"요일이 달력과 안 맞음: {weekday_error}"] if weekday_error else [])
+    if problems:
+        print("ℹ️  [stockalert] 사실 대조 불통과 — " + " / ".join(problems)[:400])
+        return None
+
+    candidate = {
+        "topic": result.get("topic") or f"{name} 입고 공지",
+        "event_key": "stockalert",
+        "threads_posts": posts,
+        "source_name": name,
+        "source_url": post.get("url", ""),
+        "buy_keys": [result.get("topic", "")],
+        "cross_sources": [{"name": name, "url": post.get("url", "")}],
+    }
+    print(f"ℹ️  [stockalert] 선정 — {name}")
+    return candidate, {"posts": posts, "page": {"image_url": post.get("image", "")}, "base_date": now.date().isoformat()}
+
+
 def write_outputs(selected: tuple[dict, dict], mode: str) -> tuple[Path, Path]:
     data, verified = selected
     posts, page = verified["posts"], verified["page"]
@@ -1509,8 +1570,8 @@ def minutes_since_last_post(history: list[dict]) -> float:
 
 def main() -> None:
     mode = sys.argv[1] if len(sys.argv) > 1 else "scheduled"
-    if mode not in ("scheduled", "breaking", "buyguide"):
-        print(f"알 수 없는 모드: {mode} (scheduled, breaking, buyguide)", file=sys.stderr)
+    if mode not in ("scheduled", "breaking", "buyguide", "stockalert"):
+        print(f"알 수 없는 모드: {mode} (scheduled, breaking, buyguide, stockalert)", file=sys.stderr)
         sys.exit(1)
 
     state = load_state()
@@ -1519,7 +1580,12 @@ def main() -> None:
         print(f"ℹ️  [{mode}] 직전 게시 후 {MIN_BREAKING_GAP_MINUTES}분이 안 지나 이번 속보 체크는 건너뜁니다.")
     else:
         try:
-            selected = select_buy_guide(state) if mode == "buyguide" else select_from_sources(mode, state)
+            if mode == "stockalert":
+                selected = select_stock_alert(state)
+            elif mode == "buyguide":
+                selected = select_buy_guide(state)
+            else:
+                selected = select_from_sources(mode, state)
             if not selected and mode == "scheduled":
                 # 정기 슬롯은 직접 수집으로 못 채우면 웹 검색 후보(엄격 검증)로 한 번 더 시도한다.
                 print(f"ℹ️  [{mode}] 직접 수집한 글로는 올릴 게 없어 웹 검색 후보를 확인합니다.")
