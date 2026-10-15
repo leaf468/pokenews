@@ -132,7 +132,13 @@ class FreshItemsTest(unittest.TestCase):
         old = self.item("어제 낮에 올라온 스레드 글 가나다", "https://www.threads.com/@a/post/1", 30)
         new = self.item("방금 올라온 스레드 입고 글 라마바", "https://www.threads.com/@a/post/2", 2)
         old["kind"] = new["kind"] = "threads"
+        old["summary"] = new["summary"] = "GS25 강남점 포켓몬카드 30주년 확장팩 오늘 오후 3시 입고, 1인 2팩 제한 " * 4
         self.assertEqual(self.urls([new, old], "scheduled"), [new["url"]])
+
+    def test_short_social_posts_are_skipped(self):
+        short = self.item("안녕하세요!", "https://www.threads.com/@a/post/3", 1)
+        short["kind"], short["summary"] = "threads", "안녕하세요! 포켓몬카드 있나요?"
+        self.assertEqual(self.urls([short], "breaking"), [])
 
     def test_day_only_dates_compare_by_day(self):
         yesterday = datetime(2026, 10, 12, tzinfo=g.KST)

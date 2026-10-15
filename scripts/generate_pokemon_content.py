@@ -786,6 +786,9 @@ def fresh_items(items: list[dict], state: dict, mode: str, now: datetime) -> lis
                 continue
         if mode == "breaking" and normalize_url(item["url"]) in state["checked"]:
             continue
+        # SNS 글은 원문 페이지를 못 열어서 수집한 본문이 전부다. 짧은 인사·질문 글은 소식이 될 수 없다.
+        if social and len(item["summary"]) < MIN_CONTENT_CHARS:
+            continue
         if find_duplicate({"topic": item["title"], "source_url": item["url"]}, state["posts"], now.date()):
             continue
         fresh.append(item)
@@ -1015,8 +1018,8 @@ def write_post(title: str, sources: list[dict], history: list[dict], now: dateti
 사실 규칙 (교차 검증):
 - 날짜·가격·수량·장소·이름 같은 구체적 사실은 (a) 공식 출처에 있거나 (b) 서로 다른 출처 두 곳 이상에서
   일치할 때만 써. 한 곳에만 있는 수치는 빼.
-- 출처끼리 서로 다르게 적은 사실(예: 발매일·가격이 다름)은 쓰지 마. 그게 소식의 핵심이면 postable 을
-  false 로 해.
+- 출처끼리 서로 다르게 적은 사실(예: 발매일·가격이 다름)은 그 수치만 빼고 나머지 확인된 내용으로 써.
+  소식의 핵심 자체(무엇이 일어났는지)가 출처끼리 엇갈릴 때만 postable 을 false 로 해.
 - 사진 설명 한 줄, 한 매장의 사례를 전체 일인 것처럼 넓혀 쓰지 마 ("○○점에서 촬영"을 "○○점에서 출시"로
   바꾸는 식의 왜곡 금지).
 - '우리가 이미 올린 관련 글'과 날짜·가격이 다르면, 이번 출처들로 확인되는 쪽만 써. 확인이 안 되면 그 수치는 빼.
