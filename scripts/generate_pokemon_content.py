@@ -1326,6 +1326,11 @@ BUY_WRITE_RULES = """\
 - 마지막 줄 앞에 "재고·일정은 매장 사정에 따라 바뀔 수 있어요" 같은 안내 한 줄, 마지막 줄에 해시태그 2~4개.
 - 전체 500자 이내. 리셀가·시세 이야기는 넣지 마.
 
+- 독자가 바로 따라 할 수 없는 기회는 빼. "어디서"와 "언제(기간·날짜·시점)"가 출처로 확인되지 않거나,
+  지금 진행 중인지·아직 남았는지 확인되지 않는 기회(예: 본문 없는 공지 제목뿐인 추첨)는 넣지 마.
+  남는 기회가 하나도 없으면 postable 을 false 로 해.
+- 공지 게시일·수정일 같은 내부 정보는 쓰지 마.
+
 사실 규칙:
 - 출처에 적힌 사실만 써. 날짜·시간·가격·수량·매장 이름은 출처 표기 그대로. 출처끼리 다르면 그 수치는 빼.
 - 한 매장의 공지를 전체 매장 이야기로 넓히지 마. 예정을 확정처럼 쓰지 마.
@@ -1383,6 +1388,15 @@ def select_buy_guide(state: dict) -> tuple[dict, dict] | None:
     # 채택한 기회의 근거 글을 출처 목록으로 만든다 (기사는 본문을 열고, SNS 글은 수집한 전문을 쓴다).
     sources, number_of = [], {}
     for opportunity in accepted:
+        # 같은 매체의 사진 기사 여러 장, 포털 전재본은 근거를 늘려 주지 않으니 매체당 하나, 기회당 최대 3개만 쓴다.
+        picked, outlets = [], set()
+        for index in sorted(opportunity["sources"], key=lambda i: pool[i]["kind"] != "official"):
+            outlet = re.sub(r"\s+(on\s+msn)$", "", pool[index]["source"].lower())
+            if host_of(pool[index]["url"]).endswith(AGGREGATOR_HOSTS) or outlet in outlets:
+                continue
+            outlets.add(outlet)
+            picked.append(index)
+        opportunity["sources"] = picked[:3]
         for index in opportunity["sources"]:
             if index in number_of:
                 continue
@@ -1427,9 +1441,14 @@ def select_buy_guide(state: dict) -> tuple[dict, dict] | None:
         "buy_keys": keys,
         "cross_sources": [{"name": s["name"], "url": s["url"]} for s in sources],
     }
-    first = pool[accepted[0]["sources"][0]]
-    page = fetch_page(first["url"]) if first["kind"] not in SOCIAL_KINDS else {"image_url": ""}
-    page = {"image_url": page.get("image_url") or first["image"]}
+    # 공식 공지의 대표 이미지는 사이트 공용 이미지인 경우가 많아 기사 이미지를 먼저 쓴다.
+    image_url = ""
+    for index in sorted({i for o in accepted for i in o["sources"]}, key=lambda i: pool[i]["kind"] == "official"):
+        item = pool[index]
+        image_url = item["image"] or (fetch_page(item["url"])["image_url"] if item["kind"] not in SOCIAL_KINDS else "")
+        if image_url:
+            break
+    page = {"image_url": image_url}
     print(f"ℹ️  [buyguide] 선정 — 구매 정보 {len(accepted)}건: " + " / ".join(k[:30] for k in keys))
     return candidate, {"posts": posts, "page": page, "base_date": now.date().isoformat()}
 
