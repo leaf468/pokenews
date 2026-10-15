@@ -95,6 +95,13 @@ CROSS_SOURCE_DAYS = 7
 CROSS_TITLE_SIMILARITY = 0.4
 # 다른 매체 기사를 옮겨 싣기만 하는 곳은 독립 출처가 아니고 본문도 스크립트로만 내려와 읽을 수 없다.
 AGGREGATOR_HOSTS = ("msn.com", "news.google.com", "bing.com", "yahoo.com")
+# 구매 정보(buyguide) 글: 정가로 살 수 있는 곳·때·방법을 모아 올린다.
+BUY_RE = re.compile(r"입고|재입고|발주|판매|추첨|응모|예약|정가|선착순|오픈런|재고|구매|입점|출시|당첨")
+BUY_NEWS_QUERIES = ("포켓몬 카드 입고", "포켓몬 카드 추첨", "포켓몬 카드 판매")
+BUY_WINDOW_HOURS = 72
+# 같은 구매처 정보를 이 기간 안에 다시 올리지 않는다.
+BUY_REPEAT_DAYS = 3
+MAX_BUY_OPPORTUNITIES = 4
 # 속보 체크에서는 제목/요약에 이런 단어가 있는 글(과 공식 공지·SNS 글)만 모델에게 보여준다.
 # 새 글이 올라올 때마다 모델을 부르면 대부분 칼럼·핫딜 기사에 토큰을 쓰게 되기 때문이다.
 URGENT_RE = re.compile(
@@ -369,7 +376,8 @@ def find_duplicate(candidate: dict, history: list[dict], today: date) -> str:
     url = normalize_url(candidate.get("source_url", ""))
     label = f"{candidate.get('topic', '')} {candidate.get('event_key', '')}"
     for entry in history:
-        if url and url == normalize_url(entry.get("source_url", "")):
+        posted_urls = [entry.get("source_url", ""), *entry.get("source_urls", [])]
+        if url and url in {normalize_url(u) for u in posted_urls if u}:
             return f"같은 출처 URL을 이미 게시함 ({entry.get('posted_at', '')[:10]})"
     for entry in recent_history(history, today):
         past = f"{entry.get('topic', '')} {entry.get('event_key', '')}"
@@ -550,6 +558,8 @@ def save_post(candidate: dict, base_date: str, hook: str) -> None:
             "has_news": True,
             "hook": hook,
             "text": (candidate.get("threads_posts") or [""])[0][:400],
+            "source_urls": candidate.get("source_urls", []),
+            "buy_keys": candidate.get("buy_keys", []),
             "posted_at": datetime.now(KST).isoformat(),
         }
     )
@@ -1077,7 +1087,7 @@ VERIFY_SYSTEM_PROMPT = """\
 """
 
 
-def verify_post(posts: list[str], sources: list[dict], now: datetime) -> dict:
+def verify_post(posts: list[str], sources: list[dict], now: datetime, require_core: bool = True) -> dict:
     """완성된 포스트를 출처들과 대조시키고, 게시해도 되는지 코드로 판정한다.
     {"ok": bool, "problems": [...], "confirmed_by": [출처 번호...]} 를 돌려준다."""
     weekday = "월화수목금토일"[now.weekday()]
@@ -1115,7 +1125,7 @@ def verify_post(posts: list[str], sources: list[dict], now: datetime) -> dict:
     independent = len({outlet_of(sources[i]) for i in core})
     if not result.get("claims"):
         problems.append("사실 대조 결과를 받지 못함")
-    elif not official and independent < 2:
+    elif require_core and not official and independent < 2:
         problems.append(f"핵심 사실을 확인해 준 독립 출처가 {independent}곳뿐 (공식 출처 또는 2곳 이상 필요)")
     return {"ok": not problems, "problems": problems, "confirmed_by": core}
 
@@ -1240,6 +1250,190 @@ def select_from_web_search(mode: str, history: list[dict]) -> tuple[dict, dict] 
     return candidate, {**verified, "posts": candidate["threads_posts"]}
 
 
+BUY_EXTRACT_SYSTEM_PROMPT = """\
+너는 포켓몬 카드 수집가를 위한 "정가 구매 정보" 담당자야. 요즘 30주년 제품처럼 인기 제품은 품귀라 리셀가가
+붙는데, 독자는 공식 가격(정가)으로 살 수 있는 기회를 알고 싶어 해. 수집된 글 목록에서 그런 기회를 뽑아줘.
+
+뽑을 것 — 지금 또는 앞으로 정가로 살 수 있는 구체적인 기회:
+- 편의점·대형마트·완구점·공식 스토어·공인 카드샵의 입고/재입고/발주/판매 시작 일정
+- 포켓몬 스토어 등 공식 판매처의 추첨·응모·예약 일정
+- 매장이 직접 올린 입고·판매 공지 (판매 방식, 1인 구매 제한, 오픈 시간 등)
+- 재고를 확인하는 공식 방법 (예: 편의점 앱 재고 조회)
+
+뽑지 말 것: 리셀·중고 거래가, 시세, 개봉 후기, 이미 끝난 판매·추첨, 개인의 구매 인증/질문, 판매처가
+불분명한 글, 구매대행·해외직구 홍보, 공식 가격보다 비싸게 파는 판매.
+
+같은 기회를 여러 글이 다루면 하나로 합치고 sources 에 해당 글 번호를 모두 적어.
+first_party 에는 그 판매처가 직접 올린 글(매장·회사 공식 계정이나 공식 공지)의 번호를 적고, 없으면 null.
+"""
+
+
+def extract_buy_opportunities(items: list[dict], now: datetime) -> list[dict]:
+    listing = "\n".join(
+        f"[{i}] ({item['kind']} · {item['source']} · {item_age_label(item, now)}) {item['title']}"
+        + (f" — {item['summary'][:300]}" if item["summary"] else "")
+        for i, item in enumerate(items)
+    )
+    weekday = "월화수목금토일"[now.weekday()]
+    user = f"""\
+현재 시각: {now:%Y-%m-%d}({weekday}) {now:%H:%M} KST
+
+수집된 글:
+{listing}
+
+정가 구매 기회를 가치가 높은 순서로 최대 {MAX_BUY_OPPORTUNITIES + 2}개 뽑아줘. 없으면 빈 배열. 다음 JSON 형식으로만 응답해:
+{{"opportunities": [{{"key": "판매처+제품 한 줄 (중복 체크용, 예: 'GS25 30th CELEBRATION 확장팩 순차 입고')",
+  "summary": "어디서·무엇을·언제·어떻게 한 줄", "sources": [글 번호], "first_party": 글 번호 또는 null}}]}}
+"""
+    opportunities = []
+    for raw in ask_json(BUY_EXTRACT_SYSTEM_PROMPT, user).get("opportunities", []):
+        indices = sorted({i for i in raw.get("sources") or [] if isinstance(i, int) and 0 <= i < len(items)})
+        first_party = raw.get("first_party")
+        if not isinstance(first_party, int) or not 0 <= first_party < len(items):
+            first_party = None
+        if first_party is not None and first_party not in indices:
+            indices.append(first_party)
+        if indices and raw.get("key"):
+            opportunities.append(
+                {"key": str(raw["key"]), "summary": str(raw.get("summary", "")), "sources": indices, "first_party": first_party}
+            )
+    return opportunities
+
+
+def buy_opportunity_problem(opportunity: dict, items: list[dict], history: list[dict], today: date) -> str:
+    """구매 기회 하나를 게시해도 되는지 코드로 판정한다. 문제가 없으면 빈 문자열.
+    근거 조건: 공식 출처, 판매처가 직접 올린 글, 또는 서로 다른 매체 두 곳 이상."""
+    used = [items[i] for i in opportunity["sources"]]
+    official = any(item["kind"] == "official" for item in used)
+    # 블로그·SNS는 다른 글을 확인해 주는 근거로 세지 않는다 (판매처가 직접 올린 글은 first_party 로 따로 인정).
+    outlets = {re.sub(r"\s+", "", item["source"]).lower() for item in used if item["kind"] not in (*SOCIAL_KINDS, "blog")}
+    if not (official or opportunity["first_party"] is not None or len(outlets) >= 2):
+        return "공식 출처·판매처 직접 공지·두 곳 이상 보도 중 어느 것도 없음"
+    for entry in recent_history(history, today, BUY_REPEAT_DAYS):
+        for past in entry.get("buy_keys", []):
+            if topic_similarity(opportunity["key"], past) >= TOPIC_SIMILARITY_THRESHOLD:
+                return f"{BUY_REPEAT_DAYS}일 안에 이미 올린 구매 정보: {past[:40]}"
+    return ""
+
+
+BUY_WRITE_RULES = """\
+아래 출처들만 근거로 "정가 구매 정보" Threads 포스트 1개를 써줘. 이번에는 웹 검색을 하지 않아.
+
+형식:
+- 첫 줄은 핵심을 담은 훅 (예: "이번 주 포켓몬 카드, 정가로 살 수 있는 곳 정리했어요"). 매번 표현을 바꿔.
+- 기회마다 한 덩어리: 어디서 / 무엇을 / 언제 / 어떻게(추첨·선착순·앱 재고 조회 등) / 가격(출처에 있을 때만).
+  판매처가 직접 올린 글이 근거면 "(매장 공지)", 공식 공지면 "(공식)"을 붙여.
+- 마지막 줄 앞에 "재고·일정은 매장 사정에 따라 바뀔 수 있어요" 같은 안내 한 줄, 마지막 줄에 해시태그 2~4개.
+- 전체 500자 이내. 리셀가·시세 이야기는 넣지 마.
+
+사실 규칙:
+- 출처에 적힌 사실만 써. 날짜·시간·가격·수량·매장 이름은 출처 표기 그대로. 출처끼리 다르면 그 수치는 빼.
+- 한 매장의 공지를 전체 매장 이야기로 넓히지 마. 예정을 확정처럼 쓰지 마.
+- 출처에 없는 요일·날짜를 덧붙이지 마.
+"""
+
+
+def write_buy_post(sources: list[dict], opportunities: list[dict], now: datetime, feedback: str = "") -> dict:
+    weekday = "월화수목금토일"[now.weekday()]
+    retry = f"\n앞서 쓴 글이 사실 대조에서 걸렸어. 아래 문제를 모두 고쳐서 다시 써 (해당 내용은 빼는 게 원칙):\n{feedback}\n" if feedback else ""
+    listed = "\n".join(f"- {o['summary']} (출처 {o['source_numbers']})" for o in opportunities)
+    user = f"""\
+현재 시각: {now:%Y-%m-%d}({weekday}) {now:%H:%M} KST
+
+{BUY_WRITE_RULES}{retry}
+다룰 구매 기회:
+{listed}
+
+{format_sources(sources)}
+
+다음 JSON 형식으로만 응답해:
+{{"postable": true 또는 false, "reason": "false 인 이유", "threads_posts": ["포스트 전체 텍스트"]}}
+"""
+    return ask_json(SYSTEM_PROMPT, user)
+
+
+def select_buy_guide(state: dict) -> tuple[dict, dict] | None:
+    """여러 소스에서 정가 구매 기회를 모아 검증한 뒤 한 편의 정리 글로 만든다. 없으면 None."""
+    now = datetime.now(KST)
+    history = state["posts"]
+    items = collect_all(extra_news_queries=BUY_NEWS_QUERIES)
+    cutoff = now - timedelta(hours=BUY_WINDOW_HOURS)
+    social_cutoff = now - timedelta(hours=SOCIAL_WINDOW_HOURS * 2)
+    pool = [
+        item for item in items
+        if item["published"]
+        and item["published"] >= (social_cutoff if item["kind"] in SOCIAL_KINDS else cutoff)
+        and BUY_RE.search(f"{item['title']} {item['summary']}")
+    ][:MAX_RANK_ITEMS]
+    print(f"ℹ️  [buyguide] 수집 {len(items)}건 중 구매 관련 최근 글 {len(pool)}건")
+    if not pool:
+        return None
+
+    accepted = []
+    for opportunity in extract_buy_opportunities(pool, now):
+        problem = buy_opportunity_problem(opportunity, pool, history, now.date())
+        print(f"ℹ️  [buyguide] {'제외' if problem else '채택'} — {opportunity['key'][:50]}" + (f" · {problem}" if problem else ""))
+        if not problem:
+            accepted.append(opportunity)
+        if len(accepted) >= MAX_BUY_OPPORTUNITIES:
+            break
+    if not accepted:
+        return None
+
+    # 채택한 기회의 근거 글을 출처 목록으로 만든다 (기사는 본문을 열고, SNS 글은 수집한 전문을 쓴다).
+    sources, number_of = [], {}
+    for opportunity in accepted:
+        for index in opportunity["sources"]:
+            if index in number_of:
+                continue
+            item = pool[index]
+            text = item["summary"]
+            if item["kind"] not in SOCIAL_KINDS:
+                page = fetch_page(item["url"])
+                if page["ok"] and len(page["text"]) >= 300:
+                    text = article_slice(page["text"], item["title"], 2500)
+            if item["kind"] == "official" and len(text) < MIN_CONTENT_CHARS:
+                text = f"(공식 공지 — 본문은 이미지라 텍스트 없음) 제목: {item['title']}"
+            stamp = f"{item['published'].astimezone(KST):%Y-%m-%d %H:%M}"
+            number_of[index] = len(sources)
+            sources.append(make_source(item["source"], item["url"], item["kind"], text, stamp))
+        opportunity["source_numbers"] = [number_of[i] for i in opportunity["sources"]]
+
+    feedback = ""
+    for attempt in (1, 2):
+        result = write_buy_post(sources, accepted, now, feedback)
+        posts = [p.strip() for p in result.get("threads_posts") or [] if isinstance(p, str) and p.strip()]
+        if not result.get("postable") or not posts:
+            print(f"ℹ️  [buyguide] 작성 포기 — {result.get('reason') or '포스트 없음'}")
+            return None
+        weekday_error = find_weekday_error("\n".join(posts), now.date())
+        verdict = verify_post(posts, sources, now, require_core=False)
+        problems = verdict["problems"] + ([f"요일이 달력과 안 맞음: {weekday_error}"] if weekday_error else [])
+        if not problems:
+            break
+        print(f"ℹ️  [buyguide] 사실 대조 {attempt}차 불통과 — " + " / ".join(problems)[:400])
+        feedback = "\n".join(f"- {p}" for p in problems)
+    else:
+        return None
+
+    keys = [o["key"] for o in accepted]
+    candidate = {
+        "topic": "정가 구매 정보: " + " / ".join(k[:30] for k in keys),
+        "event_key": "buyguide",
+        "threads_posts": posts,
+        "source_name": sources[0]["name"],
+        "source_url": sources[0]["url"],
+        "source_urls": [s["url"] for s in sources],
+        "buy_keys": keys,
+        "cross_sources": [{"name": s["name"], "url": s["url"]} for s in sources],
+    }
+    first = pool[accepted[0]["sources"][0]]
+    page = fetch_page(first["url"]) if first["kind"] not in SOCIAL_KINDS else {"image_url": ""}
+    page = {"image_url": page.get("image_url") or first["image"]}
+    print(f"ℹ️  [buyguide] 선정 — 구매 정보 {len(accepted)}건: " + " / ".join(k[:30] for k in keys))
+    return candidate, {"posts": posts, "page": page, "base_date": now.date().isoformat()}
+
+
 def write_outputs(selected: tuple[dict, dict], mode: str) -> tuple[Path, Path]:
     data, verified = selected
     posts, page = verified["posts"], verified["page"]
@@ -1296,8 +1490,8 @@ def minutes_since_last_post(history: list[dict]) -> float:
 
 def main() -> None:
     mode = sys.argv[1] if len(sys.argv) > 1 else "scheduled"
-    if mode not in ("scheduled", "breaking"):
-        print(f"알 수 없는 모드: {mode} (scheduled 또는 breaking)", file=sys.stderr)
+    if mode not in ("scheduled", "breaking", "buyguide"):
+        print(f"알 수 없는 모드: {mode} (scheduled, breaking, buyguide)", file=sys.stderr)
         sys.exit(1)
 
     state = load_state()
@@ -1306,7 +1500,7 @@ def main() -> None:
         print(f"ℹ️  [{mode}] 직전 게시 후 {MIN_BREAKING_GAP_MINUTES}분이 안 지나 이번 속보 체크는 건너뜁니다.")
     else:
         try:
-            selected = select_from_sources(mode, state)
+            selected = select_buy_guide(state) if mode == "buyguide" else select_from_sources(mode, state)
             if not selected and mode == "scheduled":
                 # 정기 슬롯은 직접 수집으로 못 채우면 웹 검색 후보(엄격 검증)로 한 번 더 시도한다.
                 print(f"ℹ️  [{mode}] 직접 수집한 글로는 올릴 게 없어 웹 검색 후보를 확인합니다.")

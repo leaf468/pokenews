@@ -213,5 +213,35 @@ class VerifyPostTest(unittest.TestCase):
         self.assertIn("다른 출처", reason)
 
 
+class BuyGuideTest(unittest.TestCase):
+    today = date(2026, 10, 15)
+
+    def items(self):
+        def item(kind, source):
+            return {"kind": kind, "source": source, "title": "", "url": "", "summary": "", "image": "",
+                    "published": None, "dated_by_day": False}
+        return [item("news", "비즈워치"), item("news", "세계일보"), item("threads", "Threads @gs25_store"),
+                item("official", "포켓몬코리아(카드 게임)"), item("blog", "Pokemon Box House")]
+
+    def problem(self, sources, first_party=None, history=()):
+        opportunity = {"key": "GS25 30th CELEBRATION 확장팩 순차 입고", "sources": sources, "first_party": first_party}
+        return g.buy_opportunity_problem(opportunity, self.items(), list(history), self.today)
+
+    def test_two_outlets_official_or_seller_post_pass(self):
+        self.assertEqual(self.problem([0, 1]), "")
+        self.assertEqual(self.problem([3]), "")
+        self.assertEqual(self.problem([2], first_party=2), "")
+
+    def test_single_outlet_or_blog_or_unclaimed_social_fails(self):
+        self.assertTrue(self.problem([0]))
+        self.assertTrue(self.problem([0, 4, 4]) and self.problem([2]))
+
+    def test_same_opportunity_within_three_days_fails(self):
+        past = {"posted_at": "2026-10-14T12:00:00+09:00", "buy_keys": ["GS25 30th CELEBRATION 확장팩 순차 입고"]}
+        self.assertIn("이미 올린", self.problem([0, 1], history=[past]))
+        old = {**past, "posted_at": "2026-10-10T12:00:00+09:00"}
+        self.assertEqual(self.problem([0, 1], history=[old]), "")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -389,8 +389,10 @@ def fetch_instagram(username: str) -> list[dict]:
     return items
 
 
-def build_jobs() -> list[tuple[str, callable]]:
+def build_jobs(extra_news_queries: tuple[str, ...] = ()) -> list[tuple[str, callable]]:
     jobs = [("포켓몬코리아 공식", fetch_pokemonkorea), ("PokéBeach", fetch_pokebeach)]
+    for query in extra_news_queries:
+        jobs.append((f"다음 뉴스 '{query}'", lambda q=query: fetch_daum_news(q)))
     for query in NEWS_QUERIES_KO:
         jobs.append((f"다음 뉴스 '{query}'", lambda q=query: fetch_daum_news(q)))
         jobs.append((f"Bing 뉴스 '{query}'", lambda q=query: fetch_bing_news(q, "ko-KR")))
@@ -415,10 +417,10 @@ def build_jobs() -> list[tuple[str, callable]]:
     return jobs
 
 
-def collect_all(verbose: bool = True) -> list[dict]:
+def collect_all(verbose: bool = True, extra_news_queries: tuple[str, ...] = ()) -> list[dict]:
     """모든 소스를 돌아 항목을 모은다. 한 소스가 죽어도 나머지는 계속 간다."""
     items, seen = [], set()
-    for name, job in build_jobs():
+    for name, job in build_jobs(extra_news_queries):
         try:
             found = job()
         except Exception as e:  # noqa: BLE001
