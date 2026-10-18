@@ -576,6 +576,23 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-10-18T11:42:09.917568+09:00"
+    },
+    {
+      "topic": "정가 구매 정보: 포켓몬스토어 온라인 30th CELEBRATION ME",
+      "event_key": "buyguide",
+      "source_url": "https://pokemoncard.co.kr/_news?id=21508",
+      "base_date": "2026-10-18",
+      "has_news": true,
+      "hook": "포켓몬스토어 온라인에서 '30th CELEBRATION' 박스 2차 추첨 응모가 2026-10-19 10:00에 시작해요. ",
+      "text": "포켓몬스토어 온라인에서 '30th CELEBRATION' 박스 2차 추첨 응모가 2026-10-19 10:00에 시작해요. \n어디서: 포켓몬스토어 온라인 (공식)\n무엇: MEGA 확장팩 '30th CELEBRATION' 박스(박스 1개 70,000원)\n언제: 응모 2026-10-19 10:00 ~ 2026-10-25 23:59 / 당첨 통보 2026-10-27 / 결제 기한 2026-10-30 자정\n어떻게: 포켓몬스토어 온라인 이벤트 페이지에서 로그인 후 응모 버튼으로 참여(계정당 1회, 당첨자에게만 개별 연락, 당첨자만 결제)\n출처: 포켓몬코리아(공식)\n재고·일정은 매장 사정에 따라 바뀔 수 있어요\n#포켓몬카드 #포켓몬TCG #포켓몬스토어 #30thCELEBRATION",
+      "source_urls": [
+        "https://pokemoncard.co.kr/_news?id=21508",
+        "https://pokemonboxhouse.tistory.com/114"
+      ],
+      "buy_keys": [
+        "포켓몬스토어 온라인 30th CELEBRATION MEGA 확장팩 2차 구매권 추첨"
+      ],
+      "posted_at": "2026-10-18T22:14:31.345704+09:00"
     }
   ],
   "checked": {
