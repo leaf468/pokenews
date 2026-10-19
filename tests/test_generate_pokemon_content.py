@@ -279,5 +279,13 @@ class BuyGuideTest(unittest.TestCase):
         self.assertEqual(self.problem([0, 1], history=[old]), "")
 
 
+class OfficialHomeTest(unittest.TestCase):
+    def test_upload_time_from_image_path(self):
+        import collect_sources as c
+        stamp = c.upload_time("https://data1.pokemonkorea.co.kr/newdata/2026/10/2026-10-15_14-11-18-81051-1792041078.png")
+        self.assertEqual(stamp, datetime(2026, 10, 15, 14, 11, 18, tzinfo=g.KST))
+        self.assertIsNone(c.upload_time("https://example.com/a.png"))
+
+
 if __name__ == "__main__":
     unittest.main()

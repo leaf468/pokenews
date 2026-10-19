@@ -13,6 +13,7 @@ on:
           - breaking
           - buyguide
           - stockalert
+          - officialcheck
       payload:
         description: 'stockalert 전용: 브라우저 감시기가 넘기는 입고 글 JSON'
         required: false

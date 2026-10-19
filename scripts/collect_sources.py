@@ -87,6 +87,7 @@ def make_item(kind, source, title, url, published=None, summary="", image="", da
         "dated_by_day": dated_by_day,  # 날짜만 알고 시각은 모르는 항목
         "summary": clean(summary)[:1500],
         "image": (image or "").strip(),
+        "images": [],  # 공식 공지처럼 내용이 이미지에 들어 있는 글의 본문 이미지
     }
 
 
@@ -173,6 +174,57 @@ def fetch_pokemonkorea() -> list[dict]:
     for item in items:
         unique.setdefault(item["title"], item)
     return list(unique.values())
+
+
+# 포켓몬코리아가 올리는 이미지 주소에는 업로드 시각이 들어 있다: .../newdata/2026/10/2026-10-15_14-11-18-...png
+UPLOAD_STAMP_RE = re.compile(r"/newdata/\d{4}/\d{2}/(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})")
+
+
+def upload_time(image_url: str) -> datetime | None:
+    match = UPLOAD_STAMP_RE.search(image_url or "")
+    return datetime(*map(int, match.groups()), tzinfo=KST) if match else None
+
+
+def page_title(url: str) -> str:
+    try:
+        match = re.search(r"<title>(.*?)</title>", get(url).text, re.S | re.I)
+    except requests.RequestException:
+        return ""
+    return clean(match.group(1)) if match else ""
+
+
+def fetch_pokemonkorea_home(max_age_days: int = 7) -> list[dict]:
+    """포켓몬코리아 홈페이지 첫 화면의 메인 배너와 협업·상품 배너. 공연·팝업·협업 소식은 '소식' 목록에 올라오지
+    않고 여기 배너로만 먼저 뜨는 경우가 많다 (예: 메가페스타 오케스트라). 배너 이미지 주소의 업로드 시각을 게시
+    시각으로 쓴다."""
+    base = "https://www.pokemonkorea.co.kr"
+    html = get(f"{base}/").text
+    cutoff = datetime.now(KST) - timedelta(days=max_age_days)
+    found = []
+    # 메인 배너: <div class="swiper-slide"> 안에 이미지 + 더보기 링크
+    for block in re.findall(r'<div class="swiper-slide[^"]*">(.*?)</div>', html, re.S):
+        image = re.search(r'<img[^>]+src="([^"]+/newdata/[^"]+)"', block)
+        link = re.search(r'<a href="([^"]+)"', block)
+        if image and link:
+            found.append((link.group(1), image.group(1), clean(block.replace("더보기", ""))))
+    # 그 밖의 배너: 이미지를 품은 링크
+    for href, inner in re.findall(r'<a[^>]+href="([^"]+)"[^>]*>(.*?)</a>', html, re.S):
+        image = re.search(r'src="([^"]+/newdata/[^"]+)"', inner)
+        if image:
+            found.append((href, image.group(1), clean(re.sub(r"\bMORE\b", "", inner))))
+
+    items, seen = [], set()
+    for href, image, text in found:
+        url = urljoin(base + "/", unescape(href))
+        published = upload_time(image)
+        if url in seen or not published or published < cutoff or "/news/" in url:  # 소식 목록은 따로 수집
+            continue
+        seen.add(url)
+        title = text or page_title(url) or "포켓몬코리아 홈페이지 새 배너"
+        item = make_item("official", "포켓몬코리아 홈페이지", title, url, published, image=image)
+        item["images"] = [image]
+        items.append(item)
+    return items
 
 
 def fetch_bing_news(query: str, market: str, newest: bool = True) -> list[dict]:
@@ -392,7 +444,11 @@ def fetch_instagram(username: str) -> list[dict]:
 
 
 def build_jobs(extra_news_queries: tuple[str, ...] = ()) -> list[tuple[str, callable]]:
-    jobs = [("포켓몬코리아 공식", fetch_pokemonkorea), ("PokéBeach", fetch_pokebeach)]
+    jobs = [
+        ("포켓몬코리아 공식", fetch_pokemonkorea),
+        ("포켓몬코리아 홈페이지 배너", fetch_pokemonkorea_home),
+        ("PokéBeach", fetch_pokebeach),
+    ]
     for query in extra_news_queries:
         jobs.append((f"다음 뉴스 '{query}'", lambda q=query: fetch_daum_news(q)))
     for query in EVENT_QUERIES_KO:

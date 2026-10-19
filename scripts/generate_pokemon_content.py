@@ -258,7 +258,7 @@ def fetch_page(url: str) -> dict:
     """출처 페이지를 한 번 fetch해서 검증에 필요한 것들을 뽑는다: 열리는지(ok), 본문 텍스트,
     실제 발행일, 대표 이미지. 모델이 URL·이미지·날짜를 지어내거나 착각해도 걸러낼 수 있도록
     웹 검색 결과가 아니라 실제 페이지 내용을 근거로 삼는다."""
-    page = {"ok": False, "error": "", "text": "", "image_url": "", "published_date": None}
+    page = {"ok": False, "error": "", "text": "", "image_url": "", "published_date": None, "images": [], "subpages": []}
     if not re.match(r"https?://", url or ""):
         page["error"] = "URL 없음"
         return page
@@ -277,6 +277,14 @@ def fetch_page(url: str) -> dict:
     if not resp.encoding or resp.encoding.lower() == "iso-8859-1":
         resp.encoding = resp.apparent_encoding
     html = resp.text[:1_500_000]
+    if host_of(resp.url).endswith(OFFICIAL_HOSTS):
+        # 공식 공지·행사 페이지는 내용이 대부분 이미지라, 본문 이미지와 하위 메뉴(티켓 안내 등) 주소를 모아 둔다.
+        images = [urljoin(resp.url, unescape(u)) for u in re.findall(r'<img[^>]+src="([^"]+)"', html)]
+        page["images"] = list(dict.fromkeys(u for u in images if "/newdata/" in u or "/upload" in u.lower()))[:12]
+        path = urlsplit(resp.url).path.rstrip("/")
+        if path:
+            subpages = re.findall(rf'href="((?:https?://[^"]*)?{re.escape(path)}/menu\d+)"', html)
+            page["subpages"] = list(dict.fromkeys(urljoin(resp.url, u) for u in subpages))[:6]
     page["text"] = html_to_text(html)
     if len(page["text"]) < 200:
         # 본문을 스크립트로 그리는 페이지는 태그만 걷어내면 남는 게 없다. 스크립트 안 데이터까지 본다.
@@ -820,6 +828,47 @@ def fresh_items(items: list[dict], state: dict, mode: str, now: datetime) -> lis
     return fresh[:MAX_RANK_ITEMS]
 
 
+def read_official_images(title: str, image_urls: list[str]) -> str:
+    """공식 공지·행사 페이지 이미지에 적힌 글자를 모델로 옮겨 적는다 (본문이 이미지뿐인 공지를 읽기 위해)."""
+    if not image_urls:
+        return ""
+    content = [{
+        "type": "input_text",
+        "text": (
+            f"포켓몬코리아 공식 페이지 '{title}'의 이미지들이야. 이미지에 적힌 글자를 빠짐없이 그대로 옮겨 적어줘 "
+            "(행사명, 일정·시간, 장소, 예매·응모 방법과 기간, 가격, 구매 제한, 특전, 주의사항). 요약하거나 해석하지 말고 "
+            "적힌 대로만. 글자가 없는 이미지는 건너뛰고, 읽을 글자가 하나도 없으면 빈 문자열만 답해."
+        ),
+    }]
+    content += [{"type": "input_image", "image_url": url} for url in image_urls[:8]]
+    try:
+        client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+        response = client.responses.create(
+            model=os.environ.get("OPENAI_MODEL", "gpt-5-mini"), input=[{"role": "user", "content": content}]
+        )
+    except Exception as e:  # noqa: BLE001
+        print(f"⚠️  공식 이미지 읽기 실패: {e}", file=sys.stderr)
+        return ""
+    if response.usage:
+        print(f"💰 모델 호출(이미지 읽기 {len(image_urls[:8])}장): 입력 {response.usage.input_tokens} · 출력 {response.usage.output_tokens} 토큰")
+    return response.output_text.strip()
+
+
+def official_content(item: dict, page: dict) -> str:
+    """공식 출처 글의 본문. 글자가 충분하면 그대로, 이미지뿐이면 이미지(하위 메뉴 페이지 포함)를 읽어서 만든다."""
+    text = article_slice(page["text"], item["title"], 5000) if page.get("ok") else ""
+    # 공식 페이지는 글자가 있어도 메뉴·바닥글이 대부분이고 실제 안내는 이미지에 있어서, 이미지가 있으면 항상 읽는다.
+    images = list(dict.fromkeys(item.get("images", []) + page.get("images", [])))[:4]
+    for subpage in page.get("subpages", [])[:6]:  # 행사 사이트의 '티켓 구매 안내' 같은 하위 페이지
+        if len(images) >= 8:
+            break
+        images += [u for u in fetch_page(subpage).get("images", []) if u not in images][:2]
+    transcribed = read_official_images(item["title"], images)
+    if not transcribed:
+        return text
+    return f"제목: {item['title']}\n(공식 페이지 이미지에 적힌 내용)\n{transcribed}\n{text}"[:6000]
+
+
 def ask_json(system: str, user: str) -> dict:
     """웹 검색 없이 모델에게 묻고 JSON으로 받는다."""
     client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
@@ -1323,7 +1372,9 @@ def select_from_sources(mode: str, state: dict) -> tuple[dict, dict] | None:
             continue
         # SNS 글은 로그인 벽 때문에 원문 페이지를 못 여니 수집 때 받은 본문(글 전문/캡션)을 쓴다.
         social = item["kind"] in SOCIAL_KINDS
-        if social or not (page["ok"] and len(page["text"]) >= 300):
+        if item["kind"] == "official":
+            content = official_content(item, page)
+        elif social or not (page["ok"] and len(page["text"]) >= 300):
             content = item["summary"]
         else:
             content = article_slice(page["text"], item["title"], 5000)
@@ -1544,7 +1595,9 @@ def select_buy_guide(state: dict) -> tuple[dict, dict] | None:
                 continue
             item = pool[index]
             text = item["summary"]
-            if item["kind"] not in SOCIAL_KINDS:
+            if item["kind"] == "official":
+                text = official_content(item, fetch_page(item["url"]))[:3000]
+            elif item["kind"] not in SOCIAL_KINDS:
                 page = fetch_page(item["url"])
                 if page["ok"] and len(page["text"]) >= 300:
                     text = article_slice(page["text"], item["title"], 2500)
@@ -1714,6 +1767,13 @@ def minutes_since_last_post(history: list[dict]) -> float:
 
 def main() -> None:
     mode = sys.argv[1] if len(sys.argv) > 1 else "scheduled"
+    if mode == "officialcheck":
+        # 점검용: 공식 페이지 하나를 이미지까지 읽어서 본문으로 뭐가 나오는지 출력만 한다 (게시하지 않음).
+        url = os.environ.get("STOCK_ALERT_PAYLOAD") or (sys.argv[2] if len(sys.argv) > 2 else "")
+        page = fetch_page(url)
+        item = {"title": page["text"][:60], "images": [], "url": url}
+        print(official_content(item, page))
+        return
     if mode not in ("scheduled", "breaking", "buyguide", "stockalert"):
         print(f"알 수 없는 모드: {mode} (scheduled, breaking, buyguide, stockalert)", file=sys.stderr)
         sys.exit(1)
