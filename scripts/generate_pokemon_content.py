@@ -35,8 +35,9 @@
 
 통과한 후보가 없으면 파일을 만들지 않고 조용히 종료한다 (아무거나 올리는 것보다 건너뛰는 게 낫다).
 
-모든 소식에 이미지를 붙이기 위해, 출처 페이지에 대표 이미지(og:image/twitter:image)가
-없으면 OpenAI 이미지 생성 API로 뉴스톤 이미지를 만들어 첨부한다.
+이미지는 만들지 않고 항상 출처에서 가져온다: 출처 페이지 대표 이미지(og:image) → 수집 때 받은 이미지 →
+공식 배너·본문 이미지 → 기사 본문 사진 → 같은 소식을 다룬 다른 매체 기사의 이미지 순으로, 실제로 열리고
+사이트 기본 이미지·로고·작은 썸네일이 아닌 것을 고른다.
 """
 
 import json
@@ -258,7 +259,10 @@ def fetch_page(url: str) -> dict:
     """출처 페이지를 한 번 fetch해서 검증에 필요한 것들을 뽑는다: 열리는지(ok), 본문 텍스트,
     실제 발행일, 대표 이미지. 모델이 URL·이미지·날짜를 지어내거나 착각해도 걸러낼 수 있도록
     웹 검색 결과가 아니라 실제 페이지 내용을 근거로 삼는다."""
-    page = {"ok": False, "error": "", "text": "", "image_url": "", "published_date": None, "images": [], "subpages": []}
+    page = {
+        "ok": False, "error": "", "text": "", "image_url": "", "published_date": None,
+        "images": [], "subpages": [], "body_images": [],
+    }
     if not re.match(r"https?://", url or ""):
         page["error"] = "URL 없음"
         return page
@@ -292,6 +296,12 @@ def fetch_page(url: str) -> dict:
             useful = [(u, t) for u, t in named.items() if not SKIP_MENU_RE.search(t)]
             useful.sort(key=lambda ut: 0 if INFO_MENU_RE.search(ut[1]) else 1)
             page["subpages"] = [u for u, _ in useful][:6]
+    # 본문 사진 (대표 이미지가 없거나 사이트 기본 이미지일 때의 후보). 지연 로딩 속성까지 본다.
+    body_images = re.findall(r'<img[^>]+(?:data-src|data-original|data-lazy-src|src)="([^"]+)"', html)
+    page["body_images"] = list(dict.fromkeys(
+        urljoin(resp.url, unescape(u)) for u in body_images
+        if not u.startswith("data:") and re.search(r"\.(jpe?g|png|webp)|/thumb|/photos?/|/image", u, re.I)
+    ))[:15]
     page["text"] = html_to_text(html)
     if len(page["text"]) < 200:
         # 본문을 스크립트로 그리는 페이지는 태그만 걷어내면 남는 게 없다. 스크립트 안 데이터까지 본다.
@@ -416,51 +426,6 @@ def find_duplicate(candidate: dict, history: list[dict], today: date) -> str:
         score = max([topic_similarity(label, past)] + [topic_similarity(label, k) for k in entry.get("buy_keys", [])])
         if score >= TOPIC_SIMILARITY_THRESHOLD:
             return f"이미 다룬 소재와 유사({score:.2f}): {entry.get('topic', '')[:50]}"
-    return ""
-
-
-def build_image_prompt(topic: str, headline: str) -> str:
-    """뉴스 썸네일 톤의 이미지 생성 프롬프트를 만든다. 특정 포켓몬 캐릭터/로고 묘사는 피해
-    저작권 문제와 왜곡을 줄이고, 깔끔한 편집(에디토리얼) 스타일로 유도한다."""
-    subject = (topic or headline or "포켓몬 트레이딩 카드 게임 소식").strip()
-    return (
-        "Clean, modern editorial news-thumbnail image for a trading card game news channel. "
-        f"Topic (in Korean): \"{subject}\". "
-        "Style: professional press/editorial photography, minimal and premium, soft studio "
-        "lighting, shallow depth of field, neutral high-end background. "
-        "Depict a generic trading card game scene — anonymous glossy collectible cards, "
-        "sealed booster packs, display cases, a card show or store setting as fits the topic. "
-        "Do NOT include any real Pokemon characters, official Pokemon logos, brand marks, "
-        "readable text, letters, numbers or watermarks. Photorealistic, uncluttered, "
-        "news-appropriate and tasteful."
-    )
-
-
-IMAGES_DIR = REPORTS_DIR / "images"
-RAW_BASE = f"https://raw.githubusercontent.com/{os.environ.get('GITHUB_REPOSITORY', 'leaf468/pokenews')}/main/"
-
-
-def generate_news_image(topic: str, headline: str) -> str:
-    """출처 이미지를 못 구했을 때 OpenAI 로 뉴스톤 이미지를 만든다. 이미지 생성 API 가 주는 임시 주소는 한 시간 뒤
-    사라지므로, 파일로 받아 저장소(reports/images)에 넣고 그 고정 주소를 돌려준다. 실패하면 빈 문자열."""
-    import base64
-
-    client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-    prompt = build_image_prompt(topic, headline)
-    for model in dict.fromkeys([os.environ.get("OPENAI_IMAGE_MODEL", "gpt-image-1"), "gpt-image-1", "dall-e-3"]):
-        try:
-            kwargs = {"response_format": "b64_json"} if model.startswith("dall-e") else {}
-            result = client.images.generate(model=model, prompt=prompt, size="1024x1024", n=1, **kwargs)
-            data = result.data[0].b64_json
-            if not data:
-                continue
-            IMAGES_DIR.mkdir(parents=True, exist_ok=True)
-            path = IMAGES_DIR / f"{datetime.now(KST):%Y%m%d-%H%M%S}.png"
-            path.write_bytes(base64.b64decode(data))
-            print(f"ℹ️  뉴스톤 이미지 생성({model}) → {path}")
-            return RAW_BASE + path.as_posix()
-        except Exception as e:  # noqa: BLE001
-            print(f"⚠️  이미지 생성 실패({model}): {e}", file=sys.stderr)
     return ""
 
 
@@ -1130,7 +1095,7 @@ def find_cross_sources(
         sources.append(
             make_source(
                 other["source"], other["url"], other["kind"], article_slice(page["text"], other["title"], 3000), stamp,
-                page["image_url"] or other["image"],
+                page["image_url"] or other["image"] or next(iter(page["body_images"]), ""),
             )
         )
         if len(sources) >= MAX_CROSS_SOURCES:
@@ -1788,16 +1753,21 @@ def write_outputs(selected: tuple[dict, dict], mode: str) -> tuple[Path, Path]:
 
     headline = posts[0].splitlines()[0]
     # 대표 이미지 후보: 출처 페이지 → 수집 때 받은 이미지 → 공식 배너·본문 이미지 → 교차 확인 출처들의 이미지
-    candidates = [page.get("image_url", "")] + verified.get("image_candidates", []) + page.get("images", [])[:2]
+    candidates = (
+        [page.get("image_url", "")] + verified.get("image_candidates", []) + page.get("images", [])[:3]
+        + page.get("body_images", [])[:8]
+    )
     image_url = pick_image(candidates)
+    if not image_url:
+        # 그래도 없으면 같은 소식을 다룬 다른 기사들에서 찾아본다 (이미지는 만들지 않는다).
+        extra, _ = find_cross_sources(
+            {"name": data.get("source_name", ""), "url": data.get("source_url", ""), "kind": "news", "text": ""},
+            data.get("topic", ""), data.get("event_key", ""), [], datetime.now(KST),
+        )
+        image_url = pick_image([src.get("image", "") for src in extra])
     image_source = "source" if image_url else ""
     if not image_url:
-        # 쓸 만한 출처 이미지가 없으면 OpenAI로 뉴스톤 이미지를 만들어서 항상 이미지를 붙인다.
-        print(f"ℹ️  [{mode}] 쓸 만한 출처 이미지가 없어 뉴스톤 이미지를 생성합니다.")
-        image_url = generate_news_image(data.get("topic", ""), headline)
-        image_source = "generated" if image_url else ""
-    if not image_url:
-        print(f"⚠️  [{mode}] 이미지를 확보하지 못했어요. 이미지 없이 텍스트로만 게시됩니다.")
+        print(f"⚠️  [{mode}] 출처에서 쓸 만한 이미지를 찾지 못했어요. 이미지 없이 남깁니다.")
 
     meta_path = REPORTS_DIR / f"{timestamp}-pokemon-meta.json"
     meta_path.write_text(
@@ -1835,10 +1805,6 @@ def minutes_since_last_post(history: list[dict]) -> float:
 
 def main() -> None:
     mode = sys.argv[1] if len(sys.argv) > 1 else "scheduled"
-    if mode == "imagecheck":
-        # 점검용: 뉴스톤 이미지 생성이 되는지만 확인한다 (게시하지 않음).
-        print(generate_news_image("포켓몬 카드 30주년 확장팩 편의점 입고", "포켓몬 카드 입고 소식") or "❌ 이미지 생성 실패")
-        return
     if mode == "officialcheck":
         # 점검용: 공식 페이지 하나를 이미지까지 읽어서 본문으로 뭐가 나오는지 출력만 한다 (게시하지 않음).
         url = os.environ.get("STOCK_ALERT_PAYLOAD") or (sys.argv[2] if len(sys.argv) > 2 else "")

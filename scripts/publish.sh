@@ -52,7 +52,6 @@ for attempt in 1 2 3 4 5; do
   git reset -q --hard origin/main
   python scripts/merge_state.py "$OURS" "$STATE" "$STATE"
   git add "$STATE"
-  [ -d reports/images ] && git add reports/images  # 생성한 대표 이미지 (Issue 가 고정 주소로 보여 준다)
   git commit -q -m "$MESSAGE" || { echo "No changes after merge"; exit 0; }
   git push -q origin HEAD:main && { echo "✅ 상태 커밋 완료"; exit 0; }
   sleep $((attempt * 5))
