@@ -295,7 +295,9 @@ def fetch_page(url: str) -> dict:
     page["text"] = html_to_text(html)
     if len(page["text"]) < 200:
         # 본문을 스크립트로 그리는 페이지는 태그만 걷어내면 남는 게 없다. 스크립트 안 데이터까지 본다.
-        page["text"] = re.sub(r"\s+", " ", unescape(re.sub(r"<[^>]+>", " ", html))).strip()
+        # (분석 코드 같은 일반 스크립트는 빼고, 데이터가 든 JSON 스크립트만 남긴다)
+        data_only = re.sub(r'(?is)<script(?![^>]*json)[^>]*>.*?</script>', " ", html)
+        page["text"] = re.sub(r"\s+", " ", unescape(re.sub(r"<[^>]+>", " ", data_only))).strip()
     page["ok"] = True
 
     for pattern in IMAGE_META_RES:
