@@ -18,19 +18,12 @@ on:
         required: false
         default: ''
         type: string
-  schedule:
-    # 정기 발행 4회 (한국시간 09/13/17/21시 = UTC 0/4/8/12시)
-    - cron: '0 0,4,8,12 * * *'
-    # 속보 체크: 30분마다 소스를 직접 수집한다. 수집 자체는 모델을 쓰지 않고, 속보감인 새 글이
-    # 있을 때만 모델을 부른다. (공개 저장소라 Actions 사용량 제한이 없다. 비공개로 바꾸면 간격을 늘릴 것.)
-    - cron: '20,50 * * * *'
-    # 정가 구매 정보 정리 2회 (한국시간 12:10 / 18:10 = UTC 3:10 / 9:10)
-    - cron: '10 3,9 * * *'
+  # 정기 발행·속보·구매 정보의 자동 실행은 pokemon-watch.yml(상시 감시 루프)이 맡는다.
+  # 이 워크플로는 수동 실행과 브라우저 감시기의 입고 알림(stockalert)용이다.
 
-# 정기 발행과 속보 체크가 겹쳐도 이력 파일을 동시에 고치지 않도록 한 번에 하나씩만 돈다.
+# 실행마다 따로 돈다 (상태 파일은 publish.sh 가 합쳐서 올리므로 서로 덮어쓰지 않는다).
 concurrency:
-  # 입고 알림은 기다리지 않고 바로 돈다 (같은 그룹이면 대기 중인 실행이 새 실행에 밀려 취소된다).
-  group: ${{ inputs.mode == 'stockalert' && github.run_id || 'pokemon-cards-bot' }}
+  group: ${{ github.run_id }}
   cancel-in-progress: false
 
 jobs:
@@ -59,10 +52,6 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "mode=${{ inputs.mode }}" >> "$GITHUB_OUTPUT"
-          elif [ "${{ github.event.schedule }}" = "0 0,4,8,12 * * *" ]; then
-            echo "mode=scheduled" >> "$GITHUB_OUTPUT"
-          elif [ "${{ github.event.schedule }}" = "10 3,9 * * *" ]; then
-            echo "mode=buyguide" >> "$GITHUB_OUTPUT"
           else
             echo "mode=breaking" >> "$GITHUB_OUTPUT"
           fi
@@ -80,82 +69,10 @@ jobs:
           INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
           INSTAGRAM_ACCOUNTS: ${{ vars.INSTAGRAM_ACCOUNTS }}
 
-      - name: Create GitHub Issue
-        if: steps.generate.outputs.has_content == 'true'
+      # Issue 생성과 상태 커밋 (감시 루프와 동시에 돌아도 서로의 기록을 합쳐서 올린다)
+      - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
-          MODE: ${{ steps.mode.outputs.mode }}
-          THREADS_FILE: ${{ steps.generate.outputs.threads_file }}
-          META_FILE: ${{ steps.generate.outputs.meta_file }}
-        run: |
-          TOPIC=$(jq -r '.topic' "$META_FILE")
-          SOURCE_NAME=$(jq -r '.source_name' "$META_FILE")
-          SOURCE_URL=$(jq -r '.source_url' "$META_FILE")
-          IMAGE_URL=$(jq -r '.image_url // ""' "$META_FILE")
-          GENERATED_AT=$(jq -r '.generated_at' "$META_FILE")
-
-          case "$MODE" in
-            scheduled) MODE_KO="정기" ;;
-            buyguide) MODE_KO="구매정보" ;;
-            stockalert) MODE_KO="입고" ;;
-            *) MODE_KO="속보" ;;
-          esac
-          TITLE="🃏 [$MODE_KO] ${TOPIC:0:80}"
-
-          BODY_FILE=$(mktemp)
-          {
-            if [ -n "$IMAGE_URL" ]; then
-              echo "![관련 이미지]($IMAGE_URL)"
-              echo
-            fi
-            echo "## 게시 본문"
-            echo
-            echo '```'
-            cat "$THREADS_FILE"
-            echo '```'
-            echo
-            echo "---"
-            echo
-            if [ -n "$SOURCE_URL" ]; then
-              echo "- **출처**: [$SOURCE_NAME]($SOURCE_URL)"
-            else
-              echo "- **출처**: $SOURCE_NAME"
-            fi
-            CROSS=$(jq -r '[.cross_sources[]? | "[\(.name)](\(.url))"] | join(", ")' "$META_FILE")
-            if [ -n "$CROSS" ]; then
-              echo "- **교차 확인**: $CROSS"
-            fi
-            echo "- **모드**: $MODE"
-            echo "- **생성 시각(KST)**: $GENERATED_AT"
-          } > "$BODY_FILE"
-
-          gh issue create \
-            --repo "${{ github.repository }}" \
-            --title "$TITLE" \
-            --body-file "$BODY_FILE" \
-            --label "pokemon-post" \
-            --label "mode:$MODE"
-
-      # 게시가 없어도 속보 판정을 마친 글 목록이 바뀌므로 항상 실행한다.
-      - name: Commit and push
-        run: |
-          git config user.name "Pokemon Cards Bot"
-          git config user.email "pokemon-cards-bot@users.noreply.github.com"
-
-          git add reports/pokemon_posted_state.json
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-          else
-            if [ "${{ steps.generate.outputs.has_content }}" = "true" ]; then
-              git commit -m "🃏 포켓몬 카드 소식 (${{ steps.mode.outputs.mode }}) - $(TZ=Asia/Seoul date +'%Y-%m-%d %H:%M KST')"
-            else
-              git commit -m "chore: 속보 판정 이력 갱신"
-            fi
-            # 입고 알림은 다른 실행과 동시에 돌 수 있어서, 밀리면 다시 받아 와서 몇 번 더 시도한다.
-            for attempt in 1 2 3 4; do
-              git fetch origin main
-              git rebase origin/main && git push origin main && break
-              git rebase --abort 2>/dev/null || true
-              sleep $((attempt * 5))
-            done
-          fi
+        run: >
+          bash scripts/publish.sh "${{ steps.mode.outputs.mode }}" "${{ steps.generate.outputs.has_content }}"
+          "${{ steps.generate.outputs.threads_file }}" "${{ steps.generate.outputs.meta_file }}"

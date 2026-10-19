@@ -43,6 +43,8 @@ HEADERS = {
 }
 
 NEWS_QUERIES_KO = ["포켓몬카드", "포켓몬 카드 게임", "포켓몬 TCG"]
+# 팝업·전시·공연·행사 기사에는 "카드"라는 말이 없는 경우가 많아 따로 찾는다 (다음 뉴스 최신순).
+EVENT_QUERIES_KO = ["포켓몬 팝업", "포켓몬 전시", "포켓몬 공연", "포켓몬 행사", "포켓몬코리아", "포켓몬 굿즈"]
 NEWS_QUERIES_EN = ['"Pokemon TCG"']
 SOCIAL_QUERIES = ["포켓몬카드", "포켓몬 카드 입고"]
 # 단어를 여러 개 붙인 검색어는 결과가 0건으로 내려온다. 또 몇 분 간격으로 여러 번 부르면 429로
@@ -392,6 +394,8 @@ def fetch_instagram(username: str) -> list[dict]:
 def build_jobs(extra_news_queries: tuple[str, ...] = ()) -> list[tuple[str, callable]]:
     jobs = [("포켓몬코리아 공식", fetch_pokemonkorea), ("PokéBeach", fetch_pokebeach)]
     for query in extra_news_queries:
+        jobs.append((f"다음 뉴스 '{query}'", lambda q=query: fetch_daum_news(q)))
+    for query in EVENT_QUERIES_KO:
         jobs.append((f"다음 뉴스 '{query}'", lambda q=query: fetch_daum_news(q)))
     for query in NEWS_QUERIES_KO:
         jobs.append((f"다음 뉴스 '{query}'", lambda q=query: fetch_daum_news(q)))

@@ -79,7 +79,9 @@ SCHEDULED_WINDOW_HOURS = 48
 SOCIAL_WINDOW_HOURS = 24
 SOCIAL_KINDS = ("threads", "x", "instagram")
 # 속보가 연달아 쏟아지지 않도록, 직전 게시 후 이 시간 동안은 속보를 올리지 않는다.
-MIN_BREAKING_GAP_MINUTES = 60
+MIN_BREAKING_GAP_MINUTES = 30
+# 속보는 올라온 지 이 시간 안의 글만 (날짜만 아는 공식 공지는 오늘·어제 글).
+BREAKING_MAX_AGE_HOURS = 8
 # 모델에게 한 번에 보여주는 수집 글 수 (최신순 상위).
 MAX_RANK_ITEMS = 60
 # 원문에서 이 글자 수 이상을 확보해야 포스트를 쓴다 (제목만 보고 지어내지 않도록).
@@ -524,7 +526,8 @@ def load_state() -> dict:
             state = {}
     posts = [e for e in state.get("posts", []) if isinstance(e, dict)]
     checked = state.get("checked") if isinstance(state.get("checked"), dict) else {}
-    return {"posts": posts, "checked": checked}
+    slots = state.get("slots") if isinstance(state.get("slots"), dict) else {}
+    return {"posts": posts, "checked": checked, "slots": slots}
 
 
 def save_state(state: dict) -> None:
@@ -533,6 +536,7 @@ def save_state(state: dict) -> None:
     state = {
         "posts": state["posts"][-HISTORY_KEEP:],
         "checked": {url: at for url, at in state["checked"].items() if at >= cutoff},
+        "slots": state.get("slots", {}),  # 감시 루프가 정기·구매정보 슬롯을 이미 돌렸는지 기록
     }
     STATE_FILE.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -808,7 +812,9 @@ def fresh_items(items: list[dict], state: dict, mode: str, now: datetime) -> lis
         # SNS 글은 원문 페이지를 못 열어서 수집한 본문이 전부다. 짧은 인사·질문 글은 소식이 될 수 없다.
         if social and len(item["summary"]) < MIN_CONTENT_CHARS:
             continue
-        if find_duplicate({"topic": item["title"], "source_url": item["url"]}, state["posts"], now.date()):
+        # 제목이 비슷하다고 미리 버리면 "개최되나 → 개최 확정" 같은 후속 발표까지 막힌다.
+        # 여기선 같은 URL만 버리고, 같은 소식인지는 뒤에서 모델 판정(새 발표면 통과)에 맡긴다.
+        if find_duplicate({"topic": "", "source_url": item["url"]}, state["posts"], now.date()):
             continue
         fresh.append(item)
     return fresh[:MAX_RANK_ITEMS]
@@ -829,20 +835,21 @@ def ask_json(system: str, user: str) -> dict:
 
 RANK_SYSTEM_PROMPT = """\
 너는 포켓몬 카드(포켓몬 트레이딩 카드 게임) 뉴스 채널의 데스크야. 방금 수집된 글 목록에서 지금 바로
-Threads에 올릴 가치가 있는 소식을 골라줘. 독자는 한국의 포켓몬 카드 수집가·플레이어야.
+Threads에 올릴 가치가 있는 소식을 골라줘. 독자는 한국의 포켓몬 카드 수집가·플레이어고, 카드뿐 아니라
+국내 포켓몬 팝업스토어·전시·공연·페스타 같은 오프라인 행사와 한정 굿즈 판매 소식도 우리 채널이 빨리 전해야 할 소식이야.
 
 고르는 기준 (위에 있을수록 우선):
 1. 지금 행동할 수 있는 한국 소식 — 발매·입고·재입고·예약/추첨 시작, 판매처·수량·가격 안내, 프로모 배포
 2. 공식 발표 — 포켓몬코리아·포켓몬컴퍼니의 신제품, 대회, 이벤트, 일정 변경 공지
 3. 사건·이슈 — 품절 대란, 구매 제한, 위조 적발, 사기·도난, 리셀 논란, 시세 급변
-4. 곧 열리는 국내 오프라인 행사 — 카드쇼, 대회, 팝업스토어
+4. 국내 포켓몬 오프라인 행사 — 팝업스토어, 전시, 공연, 페스타, 카드쇼, 대회 (새로 발표·예매 시작이면 1순위급)
 5. 해외 주요 소식 — 신세트 공개·발매, 대형 경매, 화제의 사건
 
 threads·x·instagram 글은 개인이 쓴 것일 수 있어. 공식 계정·매장 계정의 공지이거나, 본인이 직접 확인한
 구체적 사실(어느 매장에 무엇이 몇 개, 언제부터)을 담은 글만 골라. 소문·추측·잡담·판매글은 고르지 마.
 
 고르지 말 것:
-- 포켓몬 카드와 무관한 글 (게임·애니 소식, 카드가 지나가듯 언급된 기사)
+- 게임·애니·앱만의 소식, 포켓몬이 지나가듯 언급된 기사 (국내 오프라인 행사·굿즈 판매는 고를 것)
 - 해설·칼럼·투자 분석·"시장이 커진다"류 트렌드 기사처럼 새로 일어난 일이 없는 글
 - 보관법·구별법·입문 가이드 같은 꿀팁, 제품 리뷰·개봉기, 쇼핑몰 핫딜·제휴 광고, 구매대행 홍보
 - '이미 게시한 소식'과 같은 행사·제품·사건 (다른 매체가 같은 발표를 다시 쓴 것도 포함)
@@ -850,11 +857,12 @@ threads·x·instagram 글은 개인이 쓴 것일 수 있어. 공식 계정·매
 
 같은 소식을 여러 글이 다루면 가장 원문에 가깝고 자세한 글 하나만 골라.
 
-고른 글은 다른 매체 기사나 공식 공지로 교차 확인이 돼야 게시돼. 목록의 "다른 매체 N곳"이 0인 글은
-교차 확인이 어려우니, 비슷한 가치라면 공식 공지이거나 여러 매체가 다룬 소식을 먼저 골라.
+'이미 게시한 소식'과 같은 행사라도, 그 뒤에 나온 새 발표(개최 확정, 예매 오픈, 굿즈 공개, 일정 변경, 결과)는
+새 소식이야. 같은 발표를 다시 쓴 기사만 고르지 마.
 
-breaking 은 "최근 하루 안에 새로 일어났거나 발표된 일이고, 독자가 몇 시간 늦게 알면 손해인 소식"일
-때만 true 로 해. 재미는 있지만 급하지 않은 소식은 false 야.
+breaking 은 "방금(몇 시간 안에) 처음 나온 발표·사건이고 바로 알려야 하는 소식"일 때 true 로 해:
+새 행사·팝업·공연 발표나 예매·응모 오픈, 발매·입고·추첨 공지, 공식 발표, 큰 사건. 며칠 된 이야기를
+다시 다룬 글, 해외 할인 정보, 칼럼·트렌드 기사는 false 야.
 """
 
 
@@ -933,6 +941,14 @@ def article_slice(text: str, title: str, limit: int) -> str:
     """페이지 텍스트 앞쪽의 메뉴·배너를 건너뛰고 제목이 나오는 곳부터 limit 글자를 돌려준다."""
     start = text.find(title.strip()[:15]) if len(title.strip()) >= 8 else -1
     return text[max(start, 0) :][:limit]
+
+
+OFFICIAL_CITATION_RE = re.compile(r"(포켓몬코리아|포켓몬\s*코리아|포켓몬스토어|포켓몬\s*카드\s*게임)\s*공식\s*(인스타그램|홈페이지|사이트|공지|채널|X|트위터)")
+
+
+def cites_official(source: dict) -> bool:
+    """블로그 글이 포켓몬코리아 공식 채널 공지를 정리한 글인지 (원 공지를 직접 못 읽을 때의 차선책)."""
+    return source["kind"] == "blog" and bool(OFFICIAL_CITATION_RE.search(source["text"][:4000]))
 
 
 def is_press(source: dict) -> bool:
@@ -1046,24 +1062,31 @@ WRITING_STYLE = """\
 - 사실(날짜·장소·가격·제품명)은 문장 속에 자연스럽게 녹여. 항목 나열하듯 끊지 마.
 - 수집가 입장에서 한마디 리액션이나 실전 팁을 섞어 ("지갑은 조심하되 관전 포인트로는 꿀잼",
   "현장 갈 분들은 일정 다시 한 번 확인하세요", "낙찰가 어디까지 뛸지 같이 지켜볼까요").
-- 한 덩어리로 3~5문장, 필요하면 줄바꿈 한두 번. 이모지는 1~2개. 끝에 "출처: 매체명" 짧게,
-  해시태그 2~4개. 전체 500자 이내.
+- 이모지는 1~2개. 끝에 "출처: 매체명" 짧게, 해시태그 2~4개. 전체 500자 이내.
 - 포켓몬·인물·게임 기능 이름은 한국 공식 명칭으로 (Charmander→파이리, Chansey→럭키, Wonder Pick→원더픽).
   확실하지 않으면 영어 이름을 그대로 둬.
 - 단, 말투만 가볍게 하는 거야. 지어낸 경험담·과장·밈은 금지, 사실은 출처에 있는 것만.
 
-우리 채널이 실제로 올렸던 글 (톤 참고용 — 내용·문구는 베끼지 마):
-1) 이제 딱 3주 남았어요 — 2026년 8월 28일~30일 샌프란시스코에서 PokémonXP랑 포켓몬 월드챔피언십 열린대요! 😳
-   해외 갈 예정이면 배지·입장권·숙소 일정 다시 한 번 꼭 확인하세요. (출처: Pokémon 공식 사이트)
-   #포켓몬월드챔피언십 #포켓몬카드
+정보는 빠짐없이 (말투는 가볍게, 내용은 꽉 차게):
+- 행사·팝업·공연: 이름, 기간(요일 포함은 출처에 있을 때만), 운영 시간, 장소(건물·층·주소), 입장·예매 방법(예매처,
+  1인 제한, 사전예약 여부), 가격, 특전·한정 굿즈, 주의할 점(현장판매 없음 등)
+- 발매·입고·추첨: 제품명, 날짜·시간, 판매처, 가격, 구매 제한, 응모·결제 기간
+- 출처에 있는 핵심 정보를 빼고 감상만 쓰면 안 돼. 필요하면 줄바꿈으로 덩어리를 나눠 읽기 쉽게.
+
+우리 채널이 실제로 올렸던 글 (말투와 정보량 참고용 — 내용·문구는 베끼지 마):
+1) 서울 종로에서 9월 18일(금), 한복 입은 피카츄 굿즈를 바로 살 수 있어요 — '포켓몬 고풍 상점' 팝업이
+   하이커그라운드 5층에서 9월 18일부터 10월 11일까지 열려요. 🧧
+   운영 10:00–20:00, 장소는 하이커그라운드 5층(서울 중구 청계천로 40).
+   스탬프 랠리 완주하면 30주년 한복 피카츄 스티커를 주고, 프리미엄 레더 굿즈는 한정 수량·1인 구매 제한이
+   있으니 참고하세요. 팝업에선 카드 확장팩은 안 판대요!
+   출처: K-Style Seoul #포켓몬팝업 #포켓몬카드
 2) 이 카드 한 장, 3천 달러대 추정이라고요? 'Pikachu With Gray Felt Hat' PSA 10이 오늘 Crafted Auctions 경매에
    올랐어요. 감정가 $3,000–$4,000, 현재 입찰 $1,500. 반 고흐 콜라보 프로모라 커뮤니티 관심도 높아요 — 낙찰가
    어디까지 뛸지 같이 지켜볼까요. 출처: LiveAuctioneers #포켓몬카드 #경매
-3) 부산이 지금 포켓몬 천국이에요 — 당장 주말 계획 바꿔도 후회 없을 듯. 롯데백화점 부산본점 팝업(7.17~8.09)에서
-   한정 굿즈·캡슐토이·카드 체험존, 주말 피카츄·고라파덕 포토타임까지 즐길 수 있어요. 출처: 서울경제
-   #포켓몬팝업 #부산 #포켓몬카드
-4) 201.2% — 이 작은 비버통(PSA10)이 한 달 새 $90 → $271이래요. 우리가 '주목 안 하던' 카드들이 급등 목록
-   상위에 올라와 있어요. 지갑은 조심하되, 관전 포인트로는 꿀잼! 출처: VaultedMarket #포켓몬카드 #시세변동
+3) 30주년 DAY·NIGHT 박스 노리시는 분? 데코데코 그랜드 오픈 기념 응모가 9월 15일 0시부터 시작됐어요.
+   기간은 10월 10일 22:10까지, 누적 실결제 30만원마다 응모권 1장(60만원이면 2장). DAY·NIGHT 각 1명에게
+   Ultra-Premium BOX를 주고, 추첨은 10월 10일 밤 10시 10분이에요. 취소·환불 금액은 빠지니 결제 완료 꼭 확인하세요!
+   출처: 데코데코 이벤트 페이지 #포켓몬카드 #30주년
 
 금지:
 - 검증 과정을 드러내는 말 ("보도로 확인됐다", "교차 확인", "출처 1", "확인된 바에 따르면")
@@ -1106,6 +1129,8 @@ def write_post(
 {retry}
 사실 규칙:
 - 공식 출처나 언론 기사에 적힌 사실은 그대로 써도 돼 (언론 한 곳만의 보도면 "○○ 보도에 따르면"처럼 밝혀).
+  블로그가 공식 채널 공지(예: 포켓몬코리아 공식 인스타그램)를 정리한 글이면, 그 공지 내용은 써도 되고 출처는
+  "포켓몬코리아 공식 인스타그램 공지"처럼 원래 공지로 밝혀. 블로그 글쓴이의 감상·추측은 쓰지 마.
   블로그·SNS 글에만 있는 수치는 공식 출처나 언론 기사로 확인될 때만 써.
 - 출처끼리 서로 다르게 적은 사실(예: 발매일·가격이 다름)은 그 수치만 빼고 나머지 확인된 내용으로 써.
   소식의 핵심 자체(무엇이 일어났는지)가 출처끼리 엇갈릴 때만 postable 을 false 로 해.
@@ -1203,7 +1228,7 @@ def verify_post(posts: list[str], sources: list[dict], now: datetime, require_co
 
     core = valid((result.get("core") or {}).get("supported_by"))
     official = any(sources[i]["kind"] == "official" for i in core)
-    press = any(is_press(sources[i]) for i in core)
+    press = any(is_press(sources[i]) or cites_official(sources[i]) for i in core)
     independent = len({outlet_of(sources[i]) for i in core})
     if not result.get("claims"):
         problems.append("사실 대조 결과를 받지 못함")
@@ -1217,7 +1242,11 @@ def write_verified_post(
 ) -> tuple[dict | None, str]:
     """쓰기 → 사실 대조 → (문제 있으면 한 번 고쳐 쓰기 → 다시 대조). 통과하면 (후보, 요약), 아니면 (None, 사유)."""
     primary = sources[0]
-    trusted = (primary["kind"] == "official" and len(primary["text"]) >= MIN_CONTENT_CHARS * 2) or is_press(primary)
+    trusted = (
+        (primary["kind"] == "official" and len(primary["text"]) >= MIN_CONTENT_CHARS * 2)
+        or is_press(primary)
+        or cites_official(primary)
+    )
     if len(sources) < 2 and not trusted:
         return None, "블로그·SNS 단독 글이라 확인해 줄 다른 출처가 필요한데 찾지 못함"
 
@@ -1277,6 +1306,13 @@ def select_from_sources(mode: str, state: dict) -> tuple[dict, dict] | None:
     for pick in picks:
         item = fresh[pick["index"]]
         label = f"{item['source']} · {item['title'][:50]}"
+        too_old = item["published"] and (
+            (now.date() - item["published"].astimezone(KST).date()).days > 1
+            if item["dated_by_day"] else now - item["published"] > timedelta(hours=BREAKING_MAX_AGE_HOURS)
+        )
+        if mode == "breaking" and too_old:
+            print(f"ℹ️  [{mode}] 올라온 지 오래돼 속보가 아님, 정기 슬롯으로 넘김 — {label}")
+            continue
         if mode == "breaking" and not pick["breaking"]:
             print(f"ℹ️  [{mode}] 속보 아님, 정기 슬롯으로 넘김 — {label}")
             continue
@@ -1313,7 +1349,7 @@ def select_from_sources(mode: str, state: dict) -> tuple[dict, dict] | None:
             continue
         candidate.update(source_url=item["url"], source_name=item["source"])
 
-        problem = find_duplicate({**candidate, "source_url": ""}, history, now.date())
+        problem = ""
         if problem:
             print(f"ℹ️  [{mode}] 탈락 — {label} · {problem}")
             continue
