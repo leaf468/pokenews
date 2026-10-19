@@ -947,7 +947,8 @@ def make_source(name: str, url: str, kind: str, text: str, published: str = "") 
 
 def earliest_report(title: str, related: list[dict]) -> str:
     """같은 소식으로 보이는 글 중 가장 이른 게시일 (YYYY-MM-DD). 모르면 빈 문자열."""
-    dates = [i["published"] for i in related if i.get("published") and topic_similarity(title, i["title"]) >= CROSS_TITLE_SIMILARITY]
+    # 매번 비슷한 제목으로 열리는 이벤트(원더픽 이벤트 등)를 옛 소식으로 착각하지 않게 기준을 높게 잡는다.
+    dates = [i["published"] for i in related if i.get("published") and topic_similarity(title, i["title"]) >= 0.6]
     return f"{min(dates).astimezone(KST):%Y-%m-%d}" if dates else ""
 
 
@@ -1041,6 +1042,8 @@ WRITING_STYLE = """\
 - 본문: 짧은 문단 2~3개, 문단마다 1~2문장, 문단 사이 빈 줄. 구체적인 날짜·제품명·가격·장소를 넣어.
 - 마지막 두 줄: "출처: 매체명" 한 줄(한국어 표기, 예: 포켓몬 공식 사이트·뉴스1·IGN), 해시태그 2~4개 한 줄.
 - 이모지는 문단마다 0~1개. 전체 500자 이내.
+- 포켓몬·인물·게임 기능 이름은 한국 공식 명칭으로 써 (Charmander→파이리, Chansey→럭키, Wonder Pick→원더픽).
+  한국 명칭이 확실하지 않으면 영어 이름을 그대로 두되 한 번만 괄호로 설명해. 번역투 문장은 자연스럽게 다듬어.
 금지:
 - 검증 과정을 드러내는 말 ("보도로 확인됐다", "교차 확인", "출처 1", "확인된 바에 따르면")
 - 독자에게 떠넘기는 말 ("자세한 내용은 공지를 확인하세요", "공지 본문을 참고하세요")
