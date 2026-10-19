@@ -287,5 +287,18 @@ class OfficialHomeTest(unittest.TestCase):
         self.assertIsNone(c.upload_time("https://example.com/a.png"))
 
 
+class ImageAndMenuTest(unittest.TestCase):
+    def test_site_default_and_thumbnail_images_are_rejected(self):
+        for url in ["https://data1.pokemonkorea.co.kr/2016/06/2016-06-20_00-44-39-61799-1466351079.jpg",
+                    "http://www.bing.com/th?id=ONUT.abc&pid=News", "https://semoapptech.com/og.png",
+                    "https://seoulcardfesta.com/images/og-image.jpg", ""]:
+            self.assertFalse(g.is_good_image(url), url)
+
+    def test_info_menus_first_and_setlist_skipped(self):
+        self.assertTrue(g.INFO_MENU_RE.search("티켓 구매 안내"))
+        self.assertTrue(g.SKIP_MENU_RE.search("연주곡 리스트"))
+        self.assertFalse(g.SKIP_MENU_RE.search("관람 안내"))
+
+
 if __name__ == "__main__":
     unittest.main()

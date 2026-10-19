@@ -282,9 +282,16 @@ def fetch_page(url: str) -> dict:
         images = [urljoin(resp.url, unescape(u)) for u in re.findall(r'<img[^>]+src="([^"]+)"', html)]
         page["images"] = list(dict.fromkeys(u for u in images if "/newdata/" in u or "/upload" in u.lower()))[:12]
         path = urlsplit(resp.url).path.rstrip("/")
+        path = re.sub(r"/menu\d+$", "", path)
         if path:
-            subpages = re.findall(rf'href="((?:https?://[^"]*)?{re.escape(path)}/menu\d+)"', html)
-            page["subpages"] = list(dict.fromkeys(urljoin(resp.url, u) for u in subpages))[:6]
+            menus = re.findall(rf'<a[^>]+href="((?:https?://[^"]*)?{re.escape(path)}/menu\d+)"[^>]*>(.*?)</a>', html, re.S)
+            named = {}
+            for href, label in menus:
+                named.setdefault(urljoin(resp.url, href), html_to_text(label))
+            # 티켓·관람·응모 같은 안내 메뉴를 먼저, 곡 목록·영상 같은 메뉴는 뺀다.
+            useful = [(u, t) for u, t in named.items() if not SKIP_MENU_RE.search(t)]
+            useful.sort(key=lambda ut: 0 if INFO_MENU_RE.search(ut[1]) else 1)
+            page["subpages"] = [u for u, _ in useful][:6]
     page["text"] = html_to_text(html)
     if len(page["text"]) < 200:
         # 본문을 스크립트로 그리는 페이지는 태그만 걷어내면 남는 게 없다. 스크립트 안 데이터까지 본다.
@@ -307,6 +314,10 @@ def fetch_page(url: str) -> dict:
         if match:
             page["published_date"] = parse_date(match.group(0))
     return page
+
+
+INFO_MENU_RE = re.compile(r"티켓|예매|구매|관람|안내|응모|추첨|일정|MD|굿즈|특전|이벤트|참가|FAQ|자주")
+SKIP_MENU_RE = re.compile(r"연주곡|셋\s*리스트|리스트|영상|갤러리|사진|소개$")
 
 
 def check_freshness(candidate: dict, page: dict, today: date) -> tuple[bool, str, str]:
@@ -423,22 +434,64 @@ def build_image_prompt(topic: str, headline: str) -> str:
     )
 
 
+IMAGES_DIR = REPORTS_DIR / "images"
+RAW_BASE = f"https://raw.githubusercontent.com/{os.environ.get('GITHUB_REPOSITORY', 'leaf468/pokenews')}/main/"
+
+
 def generate_news_image(topic: str, headline: str) -> str:
-    """출처 대표 이미지를 못 구했을 때 OpenAI 이미지 생성으로 뉴스톤 이미지를 만들고 URL을 돌려준다.
-    실패하면 빈 문자열을 반환한다(그 경우 텍스트로만 게시)."""
+    """출처 이미지를 못 구했을 때 OpenAI 로 뉴스톤 이미지를 만든다. 이미지 생성 API 가 주는 임시 주소는 한 시간 뒤
+    사라지므로, 파일로 받아 저장소(reports/images)에 넣고 그 고정 주소를 돌려준다. 실패하면 빈 문자열."""
+    import base64
+
+    client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    prompt = build_image_prompt(topic, headline)
+    for model in dict.fromkeys([os.environ.get("OPENAI_IMAGE_MODEL", "gpt-image-1"), "gpt-image-1", "dall-e-3"]):
+        try:
+            kwargs = {"response_format": "b64_json"} if model.startswith("dall-e") else {}
+            result = client.images.generate(model=model, prompt=prompt, size="1024x1024", n=1, **kwargs)
+            data = result.data[0].b64_json
+            if not data:
+                continue
+            IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+            path = IMAGES_DIR / f"{datetime.now(KST):%Y%m%d-%H%M%S}.png"
+            path.write_bytes(base64.b64decode(data))
+            print(f"ℹ️  뉴스톤 이미지 생성({model}) → {path}")
+            return RAW_BASE + path.as_posix()
+        except Exception as e:  # noqa: BLE001
+            print(f"⚠️  이미지 생성 실패({model}): {e}", file=sys.stderr)
+    return ""
+
+
+# 사이트 공용 기본 이미지·로고·저화질 썸네일은 대표 이미지로 쓰지 않는다.
+BAD_IMAGE_RE = re.compile(
+    r"/2016/06/2016-06-20_00-44-39|og[-_]?image|/og\.png|default|logo|favicon|placeholder|bing\.com/th\?|"
+    r"blank\.|noimage|no_image|/icon",
+    re.IGNORECASE,
+)
+
+
+def is_good_image(url: str) -> bool:
+    """실제로 열리는 이미지이고, 사이트 기본 이미지나 작은 썸네일이 아닌지."""
+    if not url or not url.startswith("http") or BAD_IMAGE_RE.search(url):
+        return False
     try:
-        client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-        result = client.images.generate(
-            model=os.environ.get("OPENAI_IMAGE_MODEL", "dall-e-3"),
-            prompt=build_image_prompt(topic, headline),
-            size="1024x1024",
-            response_format="url",
-            n=1,
-        )
-        return result.data[0].url or ""
-    except Exception as e:  # noqa: BLE001
-        print(f"⚠️  이미지 생성 실패: {e}", file=sys.stderr)
-        return ""
+        resp = requests.get(url, timeout=10, stream=True, headers={"User-Agent": "Mozilla/5.0 (compatible; PokemonCardsBot/1.0)"})
+        if resp.status_code != 200 or not resp.headers.get("content-type", "").startswith("image/"):
+            return False
+        size = int(resp.headers.get("content-length") or 0)
+        if not size:  # 크기를 안 알려주면 앞부분만 받아서 본다
+            size = len(resp.raw.read(30_000, decode_content=True))
+        resp.close()
+        return size >= 20_000
+    except (requests.RequestException, ValueError):
+        return False
+
+
+def pick_image(candidates: list[str]) -> str:
+    for url in dict.fromkeys(u for u in candidates if u):
+        if is_good_image(url):
+            return url
+    return ""
 
 SYSTEM_PROMPT = """\
 너는 포켓몬 카드(포켓몬 트레이딩 카드 게임) 소식을 빠르고 정확하게 전하는 뉴스 채널 운영자야.
@@ -835,9 +888,10 @@ def read_official_images(title: str, image_urls: list[str]) -> str:
     content = [{
         "type": "input_text",
         "text": (
-            f"포켓몬코리아 공식 페이지 '{title}'의 이미지들이야. 이미지에 적힌 글자를 빠짐없이 그대로 옮겨 적어줘 "
-            "(행사명, 일정·시간, 장소, 예매·응모 방법과 기간, 가격, 구매 제한, 특전, 주의사항). 요약하거나 해석하지 말고 "
-            "적힌 대로만. 글자가 없는 이미지는 건너뛰고, 읽을 글자가 하나도 없으면 빈 문자열만 답해."
+            f"포켓몬코리아 공식 페이지 '{title}'의 이미지들이야. 이미지에 적힌 안내 글자를 그대로 옮겨 적어줘 "
+            "(행사·제품의 정확한 이름, 일정·시간, 장소, 예매·응모 방법과 기간, 예매처, 가격, 구매 제한, 특전, 주의사항). "
+            "요약하거나 해석하지 말고 적힌 대로만. 곡 목록·저작권 표기·장식 문구는 빼. "
+            "글자가 없는 이미지는 건너뛰고, 읽을 글자가 하나도 없으면 빈 문자열만 답해."
         ),
     }]
     content += [{"type": "input_image", "image_url": url} for url in image_urls[:8]]
@@ -866,7 +920,8 @@ def official_content(item: dict, page: dict) -> str:
     transcribed = read_official_images(item["title"], images)
     if not transcribed:
         return text
-    return f"제목: {item['title']}\n(공식 페이지 이미지에 적힌 내용)\n{transcribed}\n{text}"[:6000]
+    # 이미지에서 읽은 내용이 핵심이니 페이지 글자(메뉴·바닥글)보다 앞에 두고 넉넉히 남긴다.
+    return f"제목: {item['title']}\n(공식 페이지 이미지에 적힌 내용)\n{transcribed}\n\n(페이지 글자)\n{text[:1500]}"[:9000]
 
 
 def ask_json(system: str, user: str) -> dict:
@@ -1006,8 +1061,8 @@ def is_press(source: dict) -> bool:
     return source["kind"] in ("news", "overseas") and (host == "v.daum.net" or host.endswith(REPUTABLE_HOSTS) or "news" in host)
 
 
-def make_source(name: str, url: str, kind: str, text: str, published: str = "") -> dict:
-    return {"name": name, "url": url, "kind": kind, "text": text, "published": published}
+def make_source(name: str, url: str, kind: str, text: str, published: str = "", image: str = "") -> dict:
+    return {"name": name, "url": url, "kind": kind, "text": text, "published": published, "image": image}
 
 
 def earliest_report(title: str, related: list[dict]) -> str:
@@ -1071,7 +1126,10 @@ def find_cross_sources(
         seen_hosts.update({host, outlet_name})
         stamp = f"{other['published'].astimezone(KST):%Y-%m-%d}" if other["published"] else ""
         sources.append(
-            make_source(other["source"], other["url"], other["kind"], article_slice(page["text"], other["title"], 3000), stamp)
+            make_source(
+                other["source"], other["url"], other["kind"], article_slice(page["text"], other["title"], 3000), stamp,
+                page["image_url"] or other["image"],
+            )
         )
         if len(sources) >= MAX_CROSS_SOURCES:
             break
@@ -1112,6 +1170,9 @@ WRITING_STYLE = """\
 - 수집가 입장에서 한마디 리액션이나 실전 팁을 섞어 ("지갑은 조심하되 관전 포인트로는 꿀잼",
   "현장 갈 분들은 일정 다시 한 번 확인하세요", "낙찰가 어디까지 뛸지 같이 지켜볼까요").
 - 이모지는 1~2개. 끝에 "출처: 매체명" 짧게, 해시태그 2~4개. 전체 500자 이내.
+- 행사·제품·공연 이름은 출처 표기 그대로 한 글자도 빼지 말고 정확히 (예: '꿈과 모험, 그리고 만남의 기적').
+  500자가 빠듯하면 이름을 자르지 말고 덜 중요한 문장을 빼.
+- 첫 문장은 한 번 읽고 바로 이해되게: 짧게, 같은 말 반복 없이 ("예매 시작 ... 열린 예매가" 같은 반복 금지).
 - 포켓몬·인물·게임 기능 이름은 한국 공식 명칭으로 (Charmander→파이리, Chansey→럭키, Wonder Pick→원더픽).
   확실하지 않으면 영어 이름을 그대로 둬.
 - 단, 말투만 가볍게 하는 거야. 지어낸 경험담·과장·밈은 금지, 사실은 출처에 있는 것만.
@@ -1233,6 +1294,7 @@ VERIFY_SYSTEM_PROMPT = """\
 2. 주장마다 그 내용이 적혀 있는 출처 번호를 전부 적어. 같은 뜻이면 표현이 달라도 뒷받침한 것으로 봐.
 3. 문제가 있으면 problem 에 적고 severity 를 정해:
    - major: 출처에 없는 사실을 지어냄 / 출처끼리 날짜·시간·가격·수량·장소·대상이 실제로 다름 /
+     행사·제품·공연 이름이 출처와 다르거나 글자가 빠짐 (예: '만남의 기적'을 '만남 기적'으로) /
      포스트가 출처를 왜곡함 (한 매장 사례를 전체로, 예정을 완료로, 추정을 확정으로, 다른 제품으로)
    - minor: 표기·번역·띄어쓰기 차이 (e스포츠/이스포츠, LINE Yahoo/Yahoo), 한 출처가 더 자세할 뿐인 경우,
      반올림, 보도 날짜가 하루 다른 것처럼 소식의 사실이 바뀌지 않는 차이
@@ -1406,9 +1468,11 @@ def select_from_sources(mode: str, state: dict) -> tuple[dict, dict] | None:
             continue
 
         print(f"ℹ️  [{mode}] 선정 — {label} · {item_age_label(item, now)} · {note}")
-        page["image_url"] = page["image_url"] or item["image"]
+        image_candidates = [item["image"], *item.get("images", [])] + [src.get("image", "") for src in sources[1:]]
         base_date = (item["published"].astimezone(KST) if item["published"] else now).date().isoformat()
-        return candidate, {"posts": candidate["threads_posts"], "page": page, "base_date": base_date}
+        return candidate, {
+            "posts": candidate["threads_posts"], "page": page, "base_date": base_date, "image_candidates": image_candidates,
+        }
     return None
 
 
@@ -1637,16 +1701,16 @@ def select_buy_guide(state: dict) -> tuple[dict, dict] | None:
         "buy_keys": keys,
         "cross_sources": [{"name": s["name"], "url": s["url"]} for s in sources],
     }
-    # 공식 공지의 대표 이미지는 사이트 공용 이미지인 경우가 많아 기사 이미지를 먼저 쓴다.
-    image_url = ""
+    # 대표 이미지 후보: 근거 글들의 이미지 (품질 검사는 write_outputs 의 pick_image 가 한다)
+    image_candidates = []
     for index in sorted({i for o in accepted for i in o["sources"]}, key=lambda i: pool[i]["kind"] == "official"):
         item = pool[index]
-        image_url = item["image"] or (fetch_page(item["url"])["image_url"] if item["kind"] not in SOCIAL_KINDS else "")
-        if image_url:
-            break
-    page = {"image_url": image_url}
+        image_candidates += [item["image"], *item.get("images", [])]
+        if item["kind"] not in SOCIAL_KINDS:
+            image_candidates.append(fetch_page(item["url"])["image_url"])
+    page = {"image_url": ""}
     print(f"ℹ️  [buyguide] 선정 — 구매 정보 {len(accepted)}건: " + " / ".join(k[:30] for k in keys))
-    return candidate, {"posts": posts, "page": page, "base_date": now.date().isoformat()}
+    return candidate, {"posts": posts, "page": page, "base_date": now.date().isoformat(), "image_candidates": image_candidates}
 
 
 def select_stock_alert(state: dict) -> tuple[dict, dict] | None:
@@ -1721,11 +1785,13 @@ def write_outputs(selected: tuple[dict, dict], mode: str) -> tuple[Path, Path]:
     out_path.write_text("\n\n===POST_SEPARATOR===\n\n".join(posts), encoding="utf-8")
 
     headline = posts[0].splitlines()[0]
-    image_url = page["image_url"]
-    image_source = "og" if image_url else ""
+    # 대표 이미지 후보: 출처 페이지 → 수집 때 받은 이미지 → 공식 배너·본문 이미지 → 교차 확인 출처들의 이미지
+    candidates = [page.get("image_url", "")] + verified.get("image_candidates", []) + page.get("images", [])[:2]
+    image_url = pick_image(candidates)
+    image_source = "source" if image_url else ""
     if not image_url:
-        # 출처에 대표 이미지가 없으면 OpenAI로 뉴스톤 이미지를 생성해서 항상 이미지를 붙인다.
-        print(f"ℹ️  [{mode}] 출처 대표 이미지가 없어 OpenAI로 뉴스톤 이미지를 생성합니다.")
+        # 쓸 만한 출처 이미지가 없으면 OpenAI로 뉴스톤 이미지를 만들어서 항상 이미지를 붙인다.
+        print(f"ℹ️  [{mode}] 쓸 만한 출처 이미지가 없어 뉴스톤 이미지를 생성합니다.")
         image_url = generate_news_image(data.get("topic", ""), headline)
         image_source = "generated" if image_url else ""
     if not image_url:
@@ -1767,6 +1833,10 @@ def minutes_since_last_post(history: list[dict]) -> float:
 
 def main() -> None:
     mode = sys.argv[1] if len(sys.argv) > 1 else "scheduled"
+    if mode == "imagecheck":
+        # 점검용: 뉴스톤 이미지 생성이 되는지만 확인한다 (게시하지 않음).
+        print(generate_news_image("포켓몬 카드 30주년 확장팩 편의점 입고", "포켓몬 카드 입고 소식") or "❌ 이미지 생성 실패")
+        return
     if mode == "officialcheck":
         # 점검용: 공식 페이지 하나를 이미지까지 읽어서 본문으로 뭐가 나오는지 출력만 한다 (게시하지 않음).
         url = os.environ.get("STOCK_ALERT_PAYLOAD") or (sys.argv[2] if len(sys.argv) > 2 else "")
