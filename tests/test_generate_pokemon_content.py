@@ -163,6 +163,9 @@ class VerifyPostTest(unittest.TestCase):
     news_a2 = g.make_source("뉴스A 모바일", "https://m.a-news.kr/2", "news", "본문")
     news_b = g.make_source("뉴스B", "https://b-news.kr/9", "news", "본문")
     official = g.make_source("포켓몬코리아", "https://pokemonkorea.co.kr/news/2/1", "official", "본문")
+    blog_a = g.make_source("어느 블로그", "https://someone.tistory.com/1", "blog", "본문")
+    blog_b = g.make_source("다른 블로그", "https://other.tistory.com/2", "blog", "본문")
+    thread = g.make_source("Threads @someone", "https://www.threads.com/@someone/post/1", "threads", "본문")
 
     def verdict(self, sources, claims, core):
         original = g.ask_json
@@ -178,11 +181,19 @@ class VerifyPostTest(unittest.TestCase):
     def test_two_independent_sources_pass(self):
         self.assertTrue(self.verdict([self.news_a, self.news_b], [self.claim([0, 1])], [0, 1])["ok"])
 
-    def test_single_news_source_fails(self):
-        self.assertFalse(self.verdict([self.news_a, self.news_b], [self.claim([0])], [0])["ok"])
+    def test_single_press_report_passes(self):
+        self.assertTrue(self.verdict([self.news_a, self.news_b], [self.claim([0])], [0])["ok"])
+        daum = g.make_source("강원일보", "https://v.daum.net/v/20261017", "news", "본문")
+        self.assertTrue(self.verdict([daum], [self.claim([0])], [0])["ok"])
 
-    def test_same_site_twice_is_not_independent(self):
-        self.assertFalse(self.verdict([self.news_a, self.news_a2], [self.claim([0, 1])], [0, 1])["ok"])
+    def test_single_blog_or_social_post_fails(self):
+        self.assertFalse(self.verdict([self.blog_a, self.news_b], [self.claim([0])], [0])["ok"])
+        self.assertFalse(self.verdict([self.thread], [self.claim([0])], [0])["ok"])
+
+    def test_two_different_blogs_pass_but_same_site_twice_does_not(self):
+        self.assertTrue(self.verdict([self.blog_a, self.blog_b], [self.claim([0, 1])], [0, 1])["ok"])
+        same = g.make_source("어느 블로그 2", "https://someone.tistory.com/9", "blog", "본문")
+        self.assertFalse(self.verdict([self.blog_a, same], [self.claim([0, 1])], [0, 1])["ok"])
 
     def test_official_source_alone_passes(self):
         self.assertTrue(self.verdict([self.official], [self.claim([0])], [0])["ok"])
@@ -199,7 +210,7 @@ class VerifyPostTest(unittest.TestCase):
         self.assertTrue(self.verdict(sources, claims, [0, 1])["ok"])
 
     def test_out_of_range_source_numbers_are_ignored(self):
-        self.assertFalse(self.verdict([self.news_a, self.news_b], [self.claim([0, 7])], [0, 7])["ok"])
+        self.assertFalse(self.verdict([self.blog_a, self.blog_b], [self.claim([0, 7])], [0, 7])["ok"])
 
     def test_official_notice_without_text_still_needs_news_coverage(self):
         notice = g.make_source("포켓몬코리아", "https://pokemoncard.co.kr/_news?id=1", "official", "(공식 공지) 제목")
@@ -207,10 +218,35 @@ class VerifyPostTest(unittest.TestCase):
         self.assertIsNone(candidate)
         self.assertIn("다른 출처", reason)
 
-    def test_single_non_official_source_is_rejected_before_writing(self):
-        candidate, reason = g.write_verified_post("제목", [self.news_a], [], self.now, "scheduled")
+    def test_single_blog_source_is_rejected_before_writing(self):
+        candidate, reason = g.write_verified_post("제목", [self.blog_a], [], self.now, "scheduled")
         self.assertIsNone(candidate)
         self.assertIn("다른 출처", reason)
+
+
+class StyleTest(unittest.TestCase):
+    def test_meta_and_label_phrases_are_flagged(self):
+        for text in ["포켓몬 공식 사이트와 IGN 보도로 확인됐으니 참고하세요", "자세한 내용은 공지 본문을 확인하세요",
+                     "어디서: 포켓몬스토어 / 무엇: 확장팩", "출처 1에 따르면"]:
+            self.assertTrue(g.style_problems([text]), text)
+
+    def test_clean_post_passes(self):
+        post = "10월 24일부터 CU에서 30주년 확장팩을 순차 입고해요.\n\n매장별 수량은 달라요.\n\n출처: 비즈워치\n#포켓몬카드 #CU"
+        self.assertEqual(g.style_problems([post]), [])
+
+    def test_too_long_post_is_flagged(self):
+        self.assertTrue(g.style_problems(["가" * 501]))
+
+
+class EarliestReportTest(unittest.TestCase):
+    def test_earliest_date_of_same_story(self):
+        def item(title, day):
+            return {"title": title, "published": datetime(2026, 10, day, 12, tzinfo=g.KST)}
+        related = [item("Santa Cruz x Pokemon TCG Skateboards Revealed", 6),
+                   item("Pokémon TCG & Santa Cruz Skateboard Decks Available Now", 17),
+                   item("Delta Reign Elite Trainer Box price drop", 3)]
+        self.assertEqual(g.earliest_report("Santa Cruz Pokemon TCG Skateboard Decks", related), "2026-10-06")
+        self.assertEqual(g.earliest_report("전혀 다른 소식 제목입니다", related), "")
 
 
 class BuyGuideTest(unittest.TestCase):

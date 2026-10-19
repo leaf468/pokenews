@@ -88,6 +88,15 @@ MIN_CONTENT_CHARS = 120
 OFFICIAL_HOSTS = ("pokemonkorea.co.kr", "pokemoncard.co.kr", "pokemonstore.co.kr", "pokemon.com", "pokemon.co.jp", "pokemon-card.com")
 # 한 번 실행에서 교차 검증까지 시도하는 후보 수 (후보 하나에 모델 호출이 2~5번 든다).
 MAX_VERIFY_ATTEMPTS = 3
+# 이 매체들의 기사는 한 곳만 보도해도 "단독 보도"로 인정한다 (출처를 밝히고, 기사에 적힌 내용만 쓴다).
+# 다음 뉴스 검색으로 들어온 기사는 다음과 제휴한 국내 언론사라 같은 대우를 한다.
+REPUTABLE_HOSTS = (
+    "pokebeach.com", "pokeguardian.com", "ign.com", "polygon.com", "dexerto.com", "kotaku.com", "gamerant.com",
+    "screenrant.com", "mashable.com", "theverge.com", "eurogamer.net", "nintendolife.com", "siliconera.com",
+    "automaton-media.com", "dotesports.com", "pcgamer.com", "gamespot.com", "cbr.com", "gonintendo.com",
+    "pokemongohub.net", "invenglobal.com", "inven.co.kr", "watch.impress.co.jp", "4gamer.net", "famitsu.com",
+    "oricon.co.jp", "dengekionline.com", "inside-games.jp",
+)
 # 교차 검증에 쓰는 보조 출처 수와, 같은 소식을 다룬 글로 보는 기간.
 MAX_CROSS_SOURCES = 3
 CROSS_SOURCE_DAYS = 7
@@ -381,7 +390,7 @@ def find_duplicate(candidate: dict, history: list[dict], today: date) -> str:
             return f"같은 출처 URL을 이미 게시함 ({entry.get('posted_at', '')[:10]})"
     for entry in recent_history(history, today):
         past = f"{entry.get('topic', '')} {entry.get('event_key', '')}"
-        score = topic_similarity(label, past)
+        score = max([topic_similarity(label, past)] + [topic_similarity(label, k) for k in entry.get("buy_keys", [])])
         if score >= TOPIC_SIMILARITY_THRESHOLD:
             return f"이미 다룬 소재와 유사({score:.2f}): {entry.get('topic', '')[:50]}"
     return ""
@@ -926,11 +935,25 @@ def article_slice(text: str, title: str, limit: int) -> str:
     return text[max(start, 0) :][:limit]
 
 
+def is_press(source: dict) -> bool:
+    """언론사 기사인지 (단독 보도로 인정할 수 있는 출처인지)."""
+    host = host_of(source["url"])
+    return source["kind"] in ("news", "overseas") and (host == "v.daum.net" or host.endswith(REPUTABLE_HOSTS) or "news" in host)
+
+
 def make_source(name: str, url: str, kind: str, text: str, published: str = "") -> dict:
     return {"name": name, "url": url, "kind": kind, "text": text, "published": published}
 
 
-def find_cross_sources(primary: dict, title: str, query: str, pool: list[dict], now: datetime) -> list[dict]:
+def earliest_report(title: str, related: list[dict]) -> str:
+    """같은 소식으로 보이는 글 중 가장 이른 게시일 (YYYY-MM-DD). 모르면 빈 문자열."""
+    dates = [i["published"] for i in related if i.get("published") and topic_similarity(title, i["title"]) >= CROSS_TITLE_SIMILARITY]
+    return f"{min(dates).astimezone(KST):%Y-%m-%d}" if dates else ""
+
+
+def find_cross_sources(
+    primary: dict, title: str, query: str, pool: list[dict], now: datetime
+) -> tuple[list[dict], str]:
     """같은 소식을 다룬 '다른 곳'의 글을 찾아 본문까지 가져온다. 수집 목록에서 제목이 비슷한 글과,
     뉴스 검색(관련도순) 결과에서 고른다. 주 출처와 도메인이 같은 글은 독립 출처가 아니라서 뺀다."""
     cutoff = now - timedelta(days=CROSS_SOURCE_DAYS)
@@ -970,7 +993,7 @@ def find_cross_sources(primary: dict, title: str, query: str, pool: list[dict], 
         # 블로그·SNS 글은 소식의 실마리는 되지만 다른 글을 확인해 주는 근거로는 쓰지 않는다.
         if outlet_name in seen_hosts or host in seen_hosts or host.endswith(AGGREGATOR_HOSTS) or other["kind"] in (*SOCIAL_KINDS, "blog"):
             continue
-        if other["published"] and other["published"] < cutoff:
+        if other["published"] and other["published"] < cutoff:  # 오래된 글은 근거로는 안 쓰고, 처음 보도일 계산에만 쓴다
             continue
         page = fetch_page(other["url"])
         if not page["ok"] or len(page["text"]) < 300:
@@ -986,11 +1009,11 @@ def find_cross_sources(primary: dict, title: str, query: str, pool: list[dict], 
         )
         if len(sources) >= MAX_CROSS_SOURCES:
             break
-    return sources
+    return sources, earliest_report(title, related)
 
 
-def format_sources(sources: list[dict]) -> str:
-    blocks = []
+def format_sources(sources: list[dict], first_reported: str = "") -> str:
+    blocks = [f"(참고: 수집된 글 기준으로 이 소식이 처음 보도된 날은 {first_reported})"] if first_reported else []
     for index, source in enumerate(sources):
         role = "주 출처" if index == 0 else "교차 확인용"
         official = " · 공식" if source["kind"] == "official" else ""
@@ -1012,7 +1035,39 @@ def related_past_posts(title: str, history: list[dict], today: date) -> str:
     return "\n".join(lines[-5:])
 
 
-def write_post(title: str, sources: list[dict], history: list[dict], now: datetime, feedback: str = "") -> dict:
+WRITING_STYLE = """\
+글 모양 (Threads에서 읽기 좋게):
+- 첫 줄: 핵심을 담은 한 문장 훅 (무엇이·언제). 그다음 빈 줄.
+- 본문: 짧은 문단 2~3개, 문단마다 1~2문장, 문단 사이 빈 줄. 구체적인 날짜·제품명·가격·장소를 넣어.
+- 마지막 두 줄: "출처: 매체명" 한 줄(한국어 표기, 예: 포켓몬 공식 사이트·뉴스1·IGN), 해시태그 2~4개 한 줄.
+- 이모지는 문단마다 0~1개. 전체 500자 이내.
+금지:
+- 검증 과정을 드러내는 말 ("보도로 확인됐다", "교차 확인", "출처 1", "확인된 바에 따르면")
+- 독자에게 떠넘기는 말 ("자세한 내용은 공지를 확인하세요", "공지 본문을 참고하세요")
+- "어디서: / 무엇: / 언제:" 같은 항목 이름 나열, 영어 매체명·제품 설명 그대로 붙여넣기
+"""
+
+# 글 모양 규칙 위반을 코드로도 잡는다 (위반하면 사실 대조와 같은 방식으로 고쳐 쓰게 한다).
+STYLE_BANNED_RE = re.compile(
+    r"교차\s*확인|보도로\s*확인|확인된\s*바에|출처\s*\d|공지\s*본문|자세한\s*(내용|사항)[은는]?.{0,12}확인|"
+    r"(어디서|무엇|언제|어떻게)\s*[:：]"
+)
+
+
+def style_problems(posts: list[str]) -> list[str]:
+    text = "\n".join(posts)
+    problems = []
+    match = STYLE_BANNED_RE.search(text)
+    if match:
+        problems.append(f"글 모양 규칙 위반: '{match.group(0)}' 같은 검증·안내·항목 이름 표현은 빼고 자연스러운 문장으로")
+    if len(text) > 500:
+        problems.append(f"글이 {len(text)}자라 500자를 넘음 — 줄여서")
+    return problems
+
+
+def write_post(
+    title: str, sources: list[dict], history: list[dict], now: datetime, feedback: str = "", first_reported: str = ""
+) -> dict:
     """출처 본문들만 근거로 포스트를 쓰게 한다 (웹 검색 없음 — 출처에 없는 내용은 못 쓴다)."""
     recent = recent_history(history, now.date())
     posted = "\n".join(f"- [{e.get('posted_at', '')[:10]}] {e.get('topic', '')}" for e in recent[-40:])
@@ -1025,17 +1080,19 @@ def write_post(title: str, sources: list[dict], history: list[dict], now: dateti
 
 아래 출처들을 근거로 Threads 포스트 1개를 써줘. 이번에는 웹 검색을 하지 않아.
 {retry}
-사실 규칙 (교차 검증):
-- 날짜·가격·수량·장소·이름 같은 구체적 사실은 (a) 공식 출처에 있거나 (b) 서로 다른 출처 두 곳 이상에서
-  일치할 때만 써. 한 곳에만 있는 수치는 빼.
+사실 규칙:
+- 공식 출처나 언론 기사에 적힌 사실은 그대로 써도 돼 (언론 한 곳만의 보도면 "○○ 보도에 따르면"처럼 밝혀).
+  블로그·SNS 글에만 있는 수치는 공식 출처나 언론 기사로 확인될 때만 써.
 - 출처끼리 서로 다르게 적은 사실(예: 발매일·가격이 다름)은 그 수치만 빼고 나머지 확인된 내용으로 써.
   소식의 핵심 자체(무엇이 일어났는지)가 출처끼리 엇갈릴 때만 postable 을 false 로 해.
 - 사진 설명 한 줄, 한 매장의 사례를 전체 일인 것처럼 넓혀 쓰지 마 ("○○점에서 촬영"을 "○○점에서 출시"로
   바꾸는 식의 왜곡 금지).
 - '우리가 이미 올린 관련 글'과 날짜·가격이 다르면, 이번 출처들로 확인되는 쪽만 써. 확인이 안 되면 그 수치는 빼.
-- 어느 출처에도 없는 날짜·요일·수치는 절대 덧붙이지 마. 연도가 헷갈리지 않게 쓰고, 출처 매체명은 본문에
-  언급하되 URL은 넣지 마.
+- 어느 출처에도 없는 날짜·요일·수치는 절대 덧붙이지 마. URL은 넣지 마.
+- 출처 안내에 "처음 보도된 날"이 적혀 있으면, 그날 이후 새로 생긴 일(출시·판매 시작·결과 발표 등)을
+  중심으로 써. 처음 보도 이후 새로 생긴 일이 없으면 이미 지난 소식이니 postable 을 false 로 해.
 
+{WRITING_STYLE}
 다음 중 하나라도 해당하면 쓰지 말고 postable 을 false 로 해:
 - 포켓몬 카드 소식이 아니거나, 새로 일어난 일 없이 해설·칼럼·꿀팁·리뷰·광고뿐이다
 - 확인된 구체적 사실(무엇을·언제·어디서·얼마)이 부족해서 소식으로 쓸 수 없다
@@ -1044,7 +1101,7 @@ def write_post(title: str, sources: list[dict], history: list[dict], now: dateti
 
 소식 제목: {title}
 
-{format_sources(sources)}
+{format_sources(sources, first_reported)}
 
 우리가 이미 올린 관련 글:
 {related or '(없음)'}
@@ -1122,24 +1179,27 @@ def verify_post(posts: list[str], sources: list[dict], now: datetime, require_co
 
     core = valid((result.get("core") or {}).get("supported_by"))
     official = any(sources[i]["kind"] == "official" for i in core)
+    press = any(is_press(sources[i]) for i in core)
     independent = len({outlet_of(sources[i]) for i in core})
     if not result.get("claims"):
         problems.append("사실 대조 결과를 받지 못함")
-    elif require_core and not official and independent < 2:
-        problems.append(f"핵심 사실을 확인해 준 독립 출처가 {independent}곳뿐 (공식 출처 또는 2곳 이상 필요)")
+    elif require_core and not (official or press or independent >= 2):
+        problems.append("핵심 사실의 근거가 블로그·SNS뿐 (공식 출처, 언론 보도, 또는 서로 다른 두 곳 필요)")
     return {"ok": not problems, "problems": problems, "confirmed_by": core}
 
 
 def write_verified_post(
-    title: str, sources: list[dict], history: list[dict], now: datetime, mode: str
+    title: str, sources: list[dict], history: list[dict], now: datetime, mode: str, first_reported: str = ""
 ) -> tuple[dict | None, str]:
     """쓰기 → 사실 대조 → (문제 있으면 한 번 고쳐 쓰기 → 다시 대조). 통과하면 (후보, 요약), 아니면 (None, 사유)."""
-    if len(sources) < 2 and (sources[0]["kind"] != "official" or len(sources[0]["text"]) < MIN_CONTENT_CHARS * 2):
-        return None, "교차 확인할 다른 출처를 찾지 못함"
+    primary = sources[0]
+    trusted = (primary["kind"] == "official" and len(primary["text"]) >= MIN_CONTENT_CHARS * 2) or is_press(primary)
+    if len(sources) < 2 and not trusted:
+        return None, "블로그·SNS 단독 글이라 확인해 줄 다른 출처가 필요한데 찾지 못함"
 
     feedback = ""
     for attempt in (1, 2):
-        candidate = write_post(title, sources, history, now, feedback)
+        candidate = write_post(title, sources, history, now, feedback, first_reported)
         posts = [p.strip() for p in candidate.get("threads_posts") or [] if isinstance(p, str) and p.strip()]
         if not candidate.get("postable") or not posts:
             return None, candidate.get("reason") or "포스트 없음"
@@ -1148,8 +1208,9 @@ def write_verified_post(
         weekday_error = find_weekday_error("\n".join(posts), now.date())
         verdict = verify_post(posts, sources, now)
         problems = verdict["problems"] + ([f"요일이 달력과 안 맞음: {weekday_error}"] if weekday_error else [])
+        problems += style_problems(posts)
         if not problems:
-            used = [sources[i] for i in verdict["confirmed_by"]]
+            used = [sources[i] for i in verdict["confirmed_by"]] or sources[:1]
             candidate["cross_sources"] = [{"name": s["name"], "url": s["url"]} for s in used]
             return candidate, "교차 확인: " + ", ".join(s["name"] for s in used)
         print(f"ℹ️  [{mode}] 사실 대조 {attempt}차 불통과 — " + " / ".join(problems)[:400])
@@ -1176,9 +1237,18 @@ def select_from_sources(mode: str, state: dict) -> tuple[dict, dict] | None:
     if not fresh:
         return None
 
-    picks = rank_items(fresh, history, now, items)[:MAX_VERIFY_ATTEMPTS]
+    picks = rank_items(fresh, history, now, items)[: MAX_VERIFY_ATTEMPTS + 2]
     if not picks:
         print(f"ℹ️  [{mode}] 모델이 올릴 만한 글이 없다고 판단했어요.")
+    # 같은 발표를 다른 매체·다른 제목으로 다시 올리는 일을 막는다 (판정 실패 시엔 그냥 진행).
+    verdicts = judge_duplicates(
+        [{"topic": fresh[p["index"]]["title"], "threads_posts": [fresh[p["index"]]["summary"]]} for p in picks],
+        recent_history(history, now.date()),
+    ) or {}
+    for number, same_as in verdicts.items():
+        if 0 <= number < len(picks):
+            print(f"ℹ️  [{mode}] 중복 판정으로 제외 — {fresh[picks[number]['index']]['title'][:50]} · 이미 게시: {same_as[:50]}")
+    picks = [p for number, p in enumerate(picks) if number not in verdicts][:MAX_VERIFY_ATTEMPTS]
 
     for pick in picks:
         item = fresh[pick["index"]]
@@ -1207,8 +1277,13 @@ def select_from_sources(mode: str, state: dict) -> tuple[dict, dict] | None:
         published = item["published"].astimezone(KST) if item["published"] else None
         stamp = f"{published:%Y-%m-%d}" + ("" if item["dated_by_day"] else f" {published:%H:%M}") if published else ""
         primary = make_source(item["source"], item["url"], item["kind"], content, stamp)
-        sources = [primary] + find_cross_sources(primary, item["title"], pick["query"], items, now)
-        candidate, note = write_verified_post(item["title"], sources, history, now, mode)
+        cross, first_reported = find_cross_sources(primary, item["title"], pick["query"], items, now)
+        sources = [primary] + cross
+        if first_reported and item["published"] and first_reported < f"{item['published'].astimezone(KST) - timedelta(days=2):%Y-%m-%d}":
+            print(f"ℹ️  [{mode}] 참고 — 같은 소식이 {first_reported}에 처음 보도됨, 새로 생긴 일만 다루게 합니다")
+        else:
+            first_reported = ""
+        candidate, note = write_verified_post(item["title"], sources, history, now, mode, first_reported)
         if not candidate:
             print(f"ℹ️  [{mode}] 탈락 — {label} · {note}")
             continue
@@ -1240,8 +1315,11 @@ def select_from_web_search(mode: str, history: list[dict]) -> tuple[dict, dict] 
     primary = make_source(
         data.get("source_name", ""), data.get("source_url", ""), kind, article_slice(verified["page"]["text"], title, 5000)
     )
-    sources = [primary] + find_cross_sources(primary, title, data.get("event_key", ""), [], now)
-    candidate, note = write_verified_post(title, sources, history, now, mode)
+    cross, first_reported = find_cross_sources(primary, title, data.get("event_key", ""), [], now)
+    sources = [primary] + cross
+    if first_reported and first_reported >= f"{now - timedelta(days=3):%Y-%m-%d}":
+        first_reported = ""
+    candidate, note = write_verified_post(title, sources, history, now, mode, first_reported)
     if not candidate:
         print(f"ℹ️  [{mode}] 탈락 — {title[:50]} · {note}")
         return None
@@ -1320,11 +1398,11 @@ BUY_WRITE_RULES = """\
 아래 출처들만 근거로 "정가 구매 정보" Threads 포스트 1개를 써줘. 이번에는 웹 검색을 하지 않아.
 
 형식:
-- 첫 줄은 핵심을 담은 훅 (예: "이번 주 포켓몬 카드, 정가로 살 수 있는 곳 정리했어요"). 매번 표현을 바꿔.
-- 기회마다 한 덩어리: 어디서 / 무엇을 / 언제 / 어떻게(추첨·선착순·앱 재고 조회 등) / 가격(출처에 있을 때만).
-  판매처가 직접 올린 글이 근거면 "(매장 공지)", 공식 공지면 "(공식)"을 붙여.
-- 마지막 줄 앞에 "재고·일정은 매장 사정에 따라 바뀔 수 있어요" 같은 안내 한 줄, 마지막 줄에 해시태그 2~4개.
-- 전체 500자 이내. 리셀가·시세 이야기는 넣지 마.
+- 첫 줄은 핵심을 담은 훅 (예: "포켓몬 카드 30주년 팩, 이번 주 정가로 노려볼 곳"). 매번 표현을 바꿔. 그다음 빈 줄.
+- 기회마다 "📍 판매처 — 언제, 어떻게" 한 줄 + 필요하면 짧은 설명 한 줄 (가격·구매 제한은 출처에 있을 때만).
+  기회 사이 빈 줄. "어디서: / 무엇: / 언제:" 같은 항목 이름은 쓰지 마.
+- 끝에 "재고·일정은 매장 사정에 따라 바뀔 수 있어요" 한 줄, "출처: 매체명" 한 줄, 해시태그 2~4개 한 줄.
+- 전체 500자 이내. 리셀가·시세 이야기, 검증 과정 이야기("보도로 확인") 넣지 마.
 
 - 독자가 바로 따라 할 수 없는 기회는 빼. "어디서"와 "언제(기간·날짜·시점)"가 출처로 확인되지 않거나,
   지금 진행 중인지·아직 남았는지 확인되지 않는 기회(예: 본문 없는 공지 제목뿐인 추첨)는 넣지 마.
@@ -1369,6 +1447,7 @@ def select_buy_guide(state: dict) -> tuple[dict, dict] | None:
         if item["published"]
         and item["published"] >= (social_cutoff if item["kind"] in SOCIAL_KINDS else cutoff)
         and BUY_RE.search(f"{item['title']} {item['summary']}")
+        and not find_duplicate({"topic": "", "source_url": item["url"]}, history, now.date())
     ][:MAX_RANK_ITEMS]
     print(f"ℹ️  [buyguide] 수집 {len(items)}건 중 구매 관련 최근 글 {len(pool)}건")
     if not pool:
@@ -1423,6 +1502,7 @@ def select_buy_guide(state: dict) -> tuple[dict, dict] | None:
         weekday_error = find_weekday_error("\n".join(posts), now.date())
         verdict = verify_post(posts, sources, now, require_core=False)
         problems = verdict["problems"] + ([f"요일이 달력과 안 맞음: {weekday_error}"] if weekday_error else [])
+        problems += style_problems(posts)
         if not problems:
             break
         print(f"ℹ️  [buyguide] 사실 대조 {attempt}차 불통과 — " + " / ".join(problems)[:400])
