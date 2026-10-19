@@ -1390,7 +1390,7 @@ def select_from_sources(mode: str, state: dict) -> tuple[dict, dict] | None:
         primary = make_source(item["source"], item["url"], item["kind"], content, stamp)
         cross, first_reported = find_cross_sources(primary, item["title"], pick["query"], items, now)
         sources = [primary] + cross
-        if first_reported and item["published"] and first_reported < f"{item['published'].astimezone(KST) - timedelta(days=2):%Y-%m-%d}":
+        if first_reported and item["published"] and first_reported < f"{item['published'].astimezone(KST) - timedelta(days=1):%Y-%m-%d}":
             print(f"ℹ️  [{mode}] 참고 — 같은 소식이 {first_reported}에 처음 보도됨, 새로 생긴 일만 다루게 합니다")
         else:
             first_reported = ""
