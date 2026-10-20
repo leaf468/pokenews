@@ -689,6 +689,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-10-20T21:10:04.640412+09:00"
+    },
+    {
+      "topic": "Pokémon TCG Pocket 신시리즈 'Dual Fusion' 세트 공개(10/29 출시)",
+      "event_key": "Dual Fusion",
+      "source_url": "https://www.pokebeach.com/2026/10/dual-fusion-set-revealed-for-pocket-featuring-dual-type-pokemon",
+      "base_date": "2026-10-20",
+      "has_news": true,
+      "hook": "10월 29일, 'Dual Fusion'이 'Pocket'용 새 세트로 나옵니다 — C 블록 첫 세트(C1)예요. 이번 세트는 듀얼 타입 포켓몬을 전면에 내세우고, Mega Mewtwo X ex가 수록된다고 하네요. 듀얼 타입 카드 라인업과 Mega Mewtwo X ex의 등장이 관전 포인트일 것 같아요. 🔍",
+      "text": "10월 29일, 'Dual Fusion'이 'Pocket'용 새 세트로 나옵니다 — C 블록 첫 세트(C1)예요. 이번 세트는 듀얼 타입 포켓몬을 전면에 내세우고, Mega Mewtwo X ex가 수록된다고 하네요. 듀얼 타입 카드 라인업과 Mega Mewtwo X ex의 등장이 관전 포인트일 것 같아요. 🔍\n\n출처: PokéBeach\n#포켓몬TCGPocket #DualFusion #포켓몬카드 #메가뮤츠Xex",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-10-20T22:18:52.335756+09:00"
     }
   ],
   "checked": {
@@ -915,7 +927,8 @@
     "khan.co.kr/article/20261020203300A": "2026-10-20T20:48:10.067382+09:00",
     "gamey.kr/news/articleView.html?idxno=3019229": "2026-10-20T20:48:10.067382+09:00",
     "v.daum.net/v/20261020211629353": "2026-10-20T21:48:12.581407+09:00",
-    "xportsnews.com/article/2209501": "2026-10-20T21:48:12.581407+09:00"
+    "xportsnews.com/article/2209501": "2026-10-20T21:48:12.581407+09:00",
+    "pokebeach.com/2026/10/dual-fusion-set-revealed-for-pocket-featuring-dual-type-pokemon": "2026-10-20T22:18:09.328025+09:00"
   },
   "slots": {
     "buyguide": "2026-10-20T18",
