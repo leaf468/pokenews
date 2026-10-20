@@ -713,6 +713,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-10-20T23:29:36.434790+09:00"
+    },
+    {
+      "topic": "영문판 메가 이볼루션 세트 'Flowing Fists' 발매 일정 및 주요 카드",
+      "event_key": "Flowing Fists",
+      "source_url": "https://www.pokebeach.com/2026/10/flowing-fists-pokemon-tcg-set-to-release-in-february-starring-mega-lucario-z-ex",
+      "base_date": "2026-10-21",
+      "has_news": true,
+      "hook": "영문판 메가 이볼루션 세트 'Flowing Fists'가 Friday, February 5th에 발매된대요 🥊",
+      "text": "영문판 메가 이볼루션 세트 'Flowing Fists'가 Friday, February 5th에 발매된대요 🥊\n\nPokéBeach(10/20 보도)에 따르면 프리릴리즈는 January 23rd–January 31st이고, 대표 카드로 Mega Lucario Z ex가 포함된다고 해요. 이 세트는 일본판 'Aura Seeker'(November 27th 발매)를 거의 1:1로 옮긴 구성이며, 각 세트는 대략 80장 정도의 메인 카드와 약 40장의 시크릿레어가 섞여 나오는 편이라고 합니다. 프리릴리즈 일정 참고해서 참여 계획 세우시면 좋겠네요.\n\n출처: PokéBeach\n#포켓몬카드 #포켓몬TCG #FlowingFists",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-10-21T06:19:40.246087+09:00"
     }
   ],
   "checked": {
@@ -964,7 +976,8 @@
     "msn.com/en-us/gaming/game-reviews-and-previews/pokemon-tcg-pocket-first-expansion-of-new-series-and-new-card-types-revealed/ar-AA2fELiR": "2026-10-21T04:18:23.807059+09:00",
     "msn.com/ko-kr/money/%EC%9D%BC%EB%B0%98/%ED%94%84%EB%9E%91%EC%8A%A4-%EC%8B%9C%EC%9C%84-%EA%B2%A9%ED%99%94%EC%97%90-%EB%AA%85%ED%92%88%EB%B0%B1-%ED%8F%AC%EC%BC%93%EB%AA%AC-%EC%B9%B4%EB%93%9C-%EB%93%B1-%EC%88%98%EC%83%81%ED%95%9C-%EC%A4%91%EA%B3%A0-%EA%B1%B0%EB%9E%98/ar-AA2fDBJL": "2026-10-21T04:18:23.807059+09:00",
     "v.daum.net/v/20261021043245269": "2026-10-21T04:38:39.043439+09:00",
-    "gametoc.co.kr/news/articleView.html?idxno=112359": "2026-10-21T04:38:39.043439+09:00"
+    "gametoc.co.kr/news/articleView.html?idxno=112359": "2026-10-21T04:38:39.043439+09:00",
+    "pokebeach.com/2026/10/flowing-fists-pokemon-tcg-set-to-release-in-february-starring-mega-lucario-z-ex": "2026-10-21T06:18:36.646203+09:00"
   },
   "slots": {
     "buyguide": "2026-10-20T18",
