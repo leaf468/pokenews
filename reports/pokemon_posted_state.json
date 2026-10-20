@@ -701,6 +701,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-10-20T22:18:52.335756+09:00"
+    },
+    {
+      "topic": "포켓몬스토어 온라인 'Pokémon Magic Hour Illusion!' 한국 판매 개시(10/22 18:00)",
+      "event_key": "Pokémon Magic Hour Illusion!",
+      "source_url": "https://pokemonboxhouse.tistory.com/121",
+      "base_date": "2026-10-20",
+      "has_news": true,
+      "hook": "10월 22일 목요일 오후 6시, '포켓몬센터 Pokémon Magic Hour Illusion!' 시리즈가 포켓몬 스토어 온라인에서 판매 시작해요. 🔔",
+      "text": "10월 22일 목요일 오후 6시, '포켓몬센터 Pokémon Magic Hour Illusion!' 시리즈가 포켓몬 스토어 온라인에서 판매 시작해요. 🔔\n판매처는 네이버 스토어와 포켓몬 스토어 온라인 공식몰이고, 한정 수량·1인 구매 제한이 공지돼 있대요. 한국 가격과 인당 구매 수량은 아직 공개되지 않았고, 이미지 일부는 연출 컷이라 실제 구성과 다를 수 있다고 해요. 일본 발매 라인업·가격은 참고용으로 제시됐고, 전체 목록·가격은 판매 페이지 오픈 시 공개됩니다. 판매 전 미리 로그인해 두세요.\n출처: Pokemon Box House\n#포켓몬스토어 #포켓몬굿즈 #포켓몬",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-10-20T23:29:36.434790+09:00"
     }
   ],
   "checked": {
@@ -930,7 +942,9 @@
     "xportsnews.com/article/2209501": "2026-10-20T21:48:12.581407+09:00",
     "pokebeach.com/2026/10/dual-fusion-set-revealed-for-pocket-featuring-dual-type-pokemon": "2026-10-20T22:18:09.328025+09:00",
     "icv2.com/articles/news/view/63667/thieves-steal-almost-1-million-psa-graded-pokemon-sports-cards-off-fedex-truck": "2026-10-20T22:58:25.155809+09:00",
-    "pokemon.com/us/news/complete-special-pika-pika-pikachu-missions-in-pokemon-tcg-pocket": "2026-10-20T22:58:25.155809+09:00"
+    "pokemon.com/us/news/complete-special-pika-pika-pikachu-missions-in-pokemon-tcg-pocket": "2026-10-20T22:58:25.155809+09:00",
+    "pokemonboxhouse.tistory.com/121": "2026-10-20T23:28:25.334464+09:00",
+    "insider-gaming.com/pokemon-tcg-pocket-dual-fusion-set-revealed": "2026-10-20T23:28:25.334464+09:00"
   },
   "slots": {
     "buyguide": "2026-10-20T18",
