@@ -761,6 +761,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-10-22T06:40:46.887581+09:00"
+    },
+    {
+      "topic": "큐티스트리트, 포켓몬스터 한국어 엔딩곡 '동글동글 동글이' 발매",
+      "event_key": "동글동글 동글이",
+      "source_url": "https://v.daum.net/v/20261022074839424",
+      "base_date": "2026-10-22",
+      "has_news": true,
+      "hook": "10월 21일, 큐티스트리트가 포켓몬스터 한국어 엔딩곡 '동글동글 동글이'를 디지털 싱글로 발매했어요. 이 곡은 일본 원곡 '큐트한 큐타이(キュートなキューたい)'의 한국어 버전으로, 11월 3일부터 JEI 재능TV에서 방송되는 '포켓몬스터: 원더 보야지' 엔딩 테마로 사용됩니다. 🎵",
+      "text": "10월 21일, 큐티스트리트가 포켓몬스터 한국어 엔딩곡 '동글동글 동글이'를 디지털 싱글로 발매했어요. 이 곡은 일본 원곡 '큐트한 큐타이(キュートなキューたい)'의 한국어 버전으로, 11월 3일부터 JEI 재능TV에서 방송되는 '포켓몬스터: 원더 보야지' 엔딩 테마로 사용됩니다. 🎵\n\n그룹은 22일 Mnet '엠카운트다운', 23일 KBS2 '뮤직뱅크', 24일 MBC '쇼! 음악중심'에 출연하고, 2027년 1월 23일 경기 고양 킨텍스 제2전시장 9홀에서 'CUTIE STREET Live in Korea 2027 WINTER' 단독 공연을 엽니다. 음원은 주요 온라인 음원 사이트에서 감상 가능하고 콘서트 티켓은 멜론티켓 예매예정이에요. 출처: bnt뉴스·싱글리스트\n#포켓몬스터 #큐티스트리트 #동글동글동글",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-10-22T08:00:55.455771+09:00"
     }
   ],
   "checked": {
@@ -1070,7 +1082,9 @@
     "mogazmasr.com/151491": "2026-10-22T04:39:37.779092+09:00",
     "gamerant.com/pokemon-go-november-community-day": "2026-10-22T06:39:36.172061+09:00",
     "v.daum.net/v/20261022071122767": "2026-10-22T07:19:37.970030+09:00",
-    "msn.com/en-us/lifestyle/other/the-pok%C3%A9mon-tcg-perfect-order-booster-bundle-is-under-45-at-amazon-save-15/ar-AA2fM35q": "2026-10-22T07:19:37.970030+09:00"
+    "msn.com/en-us/lifestyle/other/the-pok%C3%A9mon-tcg-perfect-order-booster-bundle-is-under-45-at-amazon-save-15/ar-AA2fM35q": "2026-10-22T07:19:37.970030+09:00",
+    "v.daum.net/v/20261022074839424": "2026-10-22T07:59:37.095684+09:00",
+    "msn.com/en-us/news/other/the-pok%C3%A9mon-tcg-perfect-order-booster-bundle-is-under-45-at-amazon-save-15/ar-AA2fM35q": "2026-10-22T07:59:37.095684+09:00"
   },
   "slots": {
     "buyguide": "2026-10-21T18",
