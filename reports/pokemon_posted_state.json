@@ -737,6 +737,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-10-21T13:10:26.412468+09:00"
+    },
+    {
+      "topic": "2026년 포켓몬 카드 고가 낙찰 집계(1/1~10/16)",
+      "event_key": "The Biggest Pokémon Card Sales of 2026 So Far: 525 Sales Over $100K",
+      "source_url": "https://ultraball.com/news/data/biggest-pokemon-card-sales-2026",
+      "base_date": "2026-10-17",
+      "has_news": true,
+      "hook": "2026년 1월 1일~10월 16일 집계로 포켓몬 카드 고가 낙찰이 525건, 합계 $162.3M 기록됐어요💸",
+      "text": "2026년 1월 1일~10월 16일 집계로 포켓몬 카드 고가 낙찰이 525건, 합계 $162.3M 기록됐어요💸\n가장 비싼 건은 Logan Paul 위탁의 Pikachu Illustrator(일본판) PSA 10이 Goldin에서 2026년 2월 16일 $16,492,000에 낙찰된 건이라고 UltraBall이 집계했습니다. 상위권은 일본 프라이즈 카드가 다수 차지했고, 19건은 $1M 이상, 53건은 $500K 이상이에요 — 낙찰가 어디까지 뛸지 같이 지켜볼까요.\n출처: UltraBall\n#포켓몬카드 #포켓몬TCG #카드시세",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-10-21T21:11:59.216201+09:00"
     }
   ],
   "checked": {
@@ -1031,6 +1043,6 @@
   },
   "slots": {
     "buyguide": "2026-10-21T18",
-    "scheduled": "2026-10-21T17"
+    "scheduled": "2026-10-21T21"
   }
 }
