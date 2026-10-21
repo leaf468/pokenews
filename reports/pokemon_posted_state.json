@@ -749,6 +749,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-10-21T21:11:59.216201+09:00"
+    },
+    {
+      "topic": "Pokemon GO Pawniard Community Day 발표(11/21)",
+      "event_key": "Pawniard Community Day",
+      "source_url": "https://gamerant.com/pokemon-go-november-community-day/",
+      "base_date": "2026-10-21",
+      "has_news": true,
+      "hook": "Pawniard가 11월 Community Day 주인공이에요 — 11월 21일(토) 현지 시간 오후 2시–5시 진행입니다 🗡️",
+      "text": "Pawniard가 11월 Community Day 주인공이에요 — 11월 21일(토) 현지 시간 오후 2시–5시 진행입니다 🗡️\n\nScopely Explore 발표에 따르면, 이벤트 중 포획 시 캔디 2배·레벨 31 초과는 캔디 XL 획득 확률 2배, 인큐베이터에 넣은 알 부화 거리 1/4, 인센스 지속 3시간(데일리 어드벤처 인센스 제외) 적용돼요. 이벤트 당일 현지 시간 밤 9시까지 트레이드 스타더스트 절반·스페셜 트레이드 최대 2회, 루어 모듈 지속 1시간 혜택도 있습니다. Kingambit 진화 요구도 완화돼 Bisharp를 팀에 넣고 다크/스틸 레이드 보스 1마리만 처치하면 진화 가능(해당 변경은 같은 날 현지 시간 밤 9시에 원복).\n\n이번 커뮤데이는 Twilight Trails 시즌의 마지막 커",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-10-22T06:40:46.887581+09:00"
     }
   ],
   "checked": {
@@ -1055,7 +1067,8 @@
     "primagames.com/news/pegi-finally-cracks-down-on-ea-sports-fc-and-pokemon-go-for-gambling-mechanics": "2026-10-22T03:59:36.624706+09:00",
     "yahoo.com/news/articles/nearly-1-million-worth-psa-164142759.html": "2026-10-22T04:19:36.716431+09:00",
     "egamers.io/pokemon-tcg-pocket-is-getting-dual-type-cards-in-its-dual-fusion-expansion": "2026-10-22T04:39:37.779092+09:00",
-    "mogazmasr.com/151491": "2026-10-22T04:39:37.779092+09:00"
+    "mogazmasr.com/151491": "2026-10-22T04:39:37.779092+09:00",
+    "gamerant.com/pokemon-go-november-community-day": "2026-10-22T06:39:36.172061+09:00"
   },
   "slots": {
     "buyguide": "2026-10-21T18",
