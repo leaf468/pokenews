@@ -797,6 +797,28 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-10-22T09:12:18.541361+09:00"
+    },
+    {
+      "topic": "정가 구매 정보: 포켓몬 팝업 스토어(현장 판매) — 최근 오픈·현장구매 / 포켓몬 카드 게임 Pocket '듀얼 퓨전' 확장팩 출",
+      "event_key": "buyguide",
+      "source_url": "https://v.daum.net/v/20261022102341171",
+      "base_date": "2026-10-22",
+      "has_news": true,
+      "hook": "정가로 듀얼 퓨전 노리실 분들, 10월 29일에 게임 속에서 바로 살 수 있어요 🎮",
+      "text": "정가로 듀얼 퓨전 노리실 분들, 10월 29일에 게임 속에서 바로 살 수 있어요 🎮\n주식회사 포켓몬이 발표한 모바일 게임 '포켓몬 카드 게임 Pocket'의 신규 확장팩 '듀얼 퓨전'이 2026-10-29 업데이트로 출시되며, 출시 시 게임 내 인앱으로 확장팩 구매가 가능하다고 알려졌어요.\n출시일에 계정·결제 수단 미리 준비해두면 좋겠고, 재고·일정은 매장마다 다를 수 있어요. 출처: 경향게임스\n#포켓몬카드 #포켓몬카드게임Pocket #듀얼퓨전",
+      "source_urls": [
+        "https://v.daum.net/v/20261022102341171",
+        "https://v.daum.net/v/20261022095957683",
+        "https://v.daum.net/v/20261022095306272",
+        "https://www.khgames.co.kr/news/articleView.html?idxno=309500",
+        "https://www.gamemeca.com/view.php?gid=1782107",
+        "https://www.xportsnews.com/article/2209874"
+      ],
+      "buy_keys": [
+        "포켓몬 팝업 스토어(현장 판매) — 최근 오픈·현장구매 가능",
+        "포켓몬 카드 게임 Pocket '듀얼 퓨전' 확장팩 출시(디지털 판매) — 10/29"
+      ],
+      "posted_at": "2026-10-22T12:12:28.324719+09:00"
     }
   ],
   "checked": {
@@ -1133,7 +1155,7 @@
     "msn.com/en-us/news/other/pok%C3%A9mon-tcg-flowing-fists-release-date-confirmed-cards-preorder-details/ar-AA2fM4Iv": "2026-10-22T11:19:58.767239+09:00"
   },
   "slots": {
-    "buyguide": "2026-10-21T18",
+    "buyguide": "2026-10-22T12",
     "scheduled": "2026-10-22T09"
   }
 }
