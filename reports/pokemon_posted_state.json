@@ -843,6 +843,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-10-22T17:11:41.416606+09:00"
+    },
+    {
+      "topic": "Amazon 초대 판매: 30th Celebration ETB $59.99",
+      "event_key": "Pokémon TCG: 30th Celebration Elite Trainer Box",
+      "source_url": "https://www.ign.com/articles/pokemon-tcg-30th-celebration-elite-trainer-box-down-to-5999-at-amazon",
+      "base_date": "2026-10-22",
+      "has_news": true,
+      "hook": "아마존이 'Pokémon TCG: 30th Celebration Elite Trainer Box'를 $59.99에 팝니다 — 단, 초대장이 있어야 구매 가능해요. 초대 시스템으로 선별 판매 중이라 초대 받으면 TCGplayer 등 리셀가(예: $139.22)보다 훨씬 저렴하게 살 수 있고, 초대 요청은 이후 재입고 대상자 리스트에 남아 선정될 수 있다고 해요. 참고로 Best Buy는 'Pokémon TCG: Prismatic Evolutions Elite Trainer Box'를 초대 대상에 $49.99로 판매했고, 당첨 통보 후 24시간 내 구매해야 한다고 안내 중입니다. 초대 신청해두신 분들은 알림 잘 확인하세요 🔔 출처: IGN #포켓몬카드 #포켓몬TCG #30주년 #ETB",
+      "text": "아마존이 'Pokémon TCG: 30th Celebration Elite Trainer Box'를 $59.99에 팝니다 — 단, 초대장이 있어야 구매 가능해요. 초대 시스템으로 선별 판매 중이라 초대 받으면 TCGplayer 등 리셀가(예: $139.22)보다 훨씬 저렴하게 살 수 있고, 초대 요청은 이후 재입고 대상자 리스트에 남아 선정될 수 있다고 해요. 참고로 Best Buy는 'Pokémon TCG: Prismatic Evolutions Elite Trainer Box'를 초대 대상에 $49.99로 판매했고, 당첨 통보 후 24시간 내 구매해야 한다고 안내 중입니다. 초대 신청해두신 분들은 알림 잘 확인하세요 🔔 출처: IGN #포켓몬카드 #포켓몬TCG #30주년 #ETB",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-10-22T21:01:48.407547+09:00"
     }
   ],
   "checked": {
@@ -1197,6 +1209,6 @@
   },
   "slots": {
     "buyguide": "2026-10-22T18",
-    "scheduled": "2026-10-22T17"
+    "scheduled": "2026-10-22T21"
   }
 }
