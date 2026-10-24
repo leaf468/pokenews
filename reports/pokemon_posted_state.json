@@ -955,6 +955,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-10-23T21:03:08.326871+09:00"
+    },
+    {
+      "topic": "11월 6일 발매와 함께 해외 소매점에서 가이오가·그라돈·기라티나 프로모 카드 증정",
+      "event_key": "Get Kyogre, Groudon, and Giratina Pokémon TCG Promo Cards at Participating Retailers",
+      "source_url": "https://gonintendo.com/contents/66457-get-kyogre-groudon-and-giratina-pokemon-tcg-promo-cards-at-participating-retailers",
+      "base_date": "2026-10-23",
+      "has_news": true,
+      "hook": "11월 6일부터, 'Mega Evolution—Delta Reign' 발매와 함께 일부 해외 소매점에서 가이오가·그라돈·기라티나 프로모 카드를 증정해요. 포켓몬 TCG 제품을 $15 이상 구매하면 받을 수 있고(선착순·재고 소진 시 종료) 가이오가는 Hot Topic·Barnes & Noble·Five Below·Macy's(미국), 그라돈은 GameStop(미국)·EB Games(캐나다·호주), 기라티나는 Best Buy(미국)·Toymate·Mr Toys(호주)에서 배포된다고 합니다. 카드에는 Pokémon 30 / What's Your Favorite 로고가 들어간대요 — 해외 매장 대상이라 재고 빠르게 소진될 수 있으니 참고하세요 🎴",
+      "text": "11월 6일부터, 'Mega Evolution—Delta Reign' 발매와 함께 일부 해외 소매점에서 가이오가·그라돈·기라티나 프로모 카드를 증정해요. 포켓몬 TCG 제품을 $15 이상 구매하면 받을 수 있고(선착순·재고 소진 시 종료) 가이오가는 Hot Topic·Barnes & Noble·Five Below·Macy's(미국), 그라돈은 GameStop(미국)·EB Games(캐나다·호주), 기라티나는 Best Buy(미국)·Toymate·Mr Toys(호주)에서 배포된다고 합니다. 카드에는 Pokémon 30 / What's Your Favorite 로고가 들어간대요 — 해외 매장 대상이라 재고 빠르게 소진될 수 있으니 참고하세요 🎴\n출처: GoNintendo #포켓몬카드 #포켓몬TCG #프로모카드",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-10-24T09:03:30.631382+09:00"
     }
   ],
   "checked": {
@@ -1422,6 +1434,6 @@
   },
   "slots": {
     "buyguide": "2026-10-23T18",
-    "scheduled": "2026-10-23T21"
+    "scheduled": "2026-10-24T09"
   }
 }
