@@ -1051,6 +1051,18 @@
         "대형마트·편의점·카드전문점 입고 공지 – 당일 입고 확인 후 정가 구매 시도"
       ],
       "posted_at": "2026-10-26T12:06:34.186625+09:00"
+    },
+    {
+      "topic": "PSA 등급 카드 대량 도난·FBI 수사",
+      "event_key": "PSA FedEx truck heist",
+      "source_url": "https://www.dexerto.com/entertainment/psa-confirms-fbi-investigating-1-million-pokemon-trading-card-heist-as-full-stolen-list-revealed-3421519/",
+      "base_date": "2026-10-24",
+      "has_news": true,
+      "hook": "PSA가 공개한 도난 목록 6,451점, FBI가 수사에 착수했어요 🚨",
+      "text": "PSA가 공개한 도난 목록 6,451점, FBI가 수사에 착수했어요 🚨\n\n보도에 따르면 10월 13일 산타애나 PSA 본사 앞에 주차된 페덱스 트럭에서 200여 개의 소포가 도난당했고, 경찰은 피해액을 약 96만3천달러로 추정합니다. PSA는 도난된 등급 인증번호를 비활성화하고 거래 플랫폼·경매사에 목록을 공유했으며, 등급 수수료 환불 등 영향을 받은 고객 지원을 진행 중이라고 밝혔어요. 낙찰·거래 예정인 분들은 목록·인증 상태를 주의해서 확인하시길 권합니다.\n\n출처: Dexerto, IGN\n#포켓몬카드 #포켓몬TCG #PSA #도난",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-10-26T13:08:08.581292+09:00"
     }
   ],
   "checked": {
@@ -1575,6 +1587,6 @@
   },
   "slots": {
     "buyguide": "2026-10-26T12",
-    "scheduled": "2026-10-26T09"
+    "scheduled": "2026-10-26T13"
   }
 }
