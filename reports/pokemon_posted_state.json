@@ -1182,6 +1182,24 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-10-29T09:09:23.061405+09:00"
+    },
+    {
+      "topic": "정가 구매 정보: 이마트 앱(DigitalGrab) 포켓몬 카드 게임 3",
+      "event_key": "buyguide",
+      "source_url": "https://v.daum.net/v/20261029111522481",
+      "base_date": "2026-10-29",
+      "has_news": true,
+      "hook": "리셀가 말고 정가로 30주년 팩 노리실 분들, 이마트 앱에서 한 번 노려보세요 👀",
+      "text": "리셀가 말고 정가로 30주년 팩 노리실 분들, 이마트 앱에서 한 번 노려보세요 👀\n\n📍 이마트 앱 디지털그랩에서 '포켓몬 카드게임 30주년 기념팩'을 한정 판매한다고 해요. 이마트가 10월 30일부터 11월 8일까지 여는 '쓱데이' 기간 중, 판매는 행사 첫날인 10월 30일부터 다음 달 1일(11월 1일)까지 진행됩니다.\n\n앱 한정 판매이니 첫날 시도해보세요 — 재고·일정은 매장마다 다를 수 있어요. 출처: 헤럴드경제·에너지경제\n#포켓몬카드 #포켓몬TCG #쓱데이",
+      "source_urls": [
+        "https://v.daum.net/v/20261029111522481",
+        "https://v.daum.net/v/20261028210010562",
+        "https://v.daum.net/v/20261028141229736"
+      ],
+      "buy_keys": [
+        "이마트 앱(DigitalGrab) 포켓몬 카드 게임 30주년 기념팩 한정 판매"
+      ],
+      "posted_at": "2026-10-29T12:09:49.357277+09:00"
     }
   ],
   "checked": {
@@ -1848,7 +1866,7 @@
     "msn.com/en-us/gaming/general/mcdonald-s-x-pok%C3%A9mon-tcg-collab-adds-plastic-toy-boxes-and-15-cards-in-november/ar-AA2ghoUN": "2026-10-29T11:28:20.156914+09:00"
   },
   "slots": {
-    "buyguide": "2026-10-28T18",
+    "buyguide": "2026-10-29T12",
     "scheduled": "2026-10-29T09"
   }
 }
