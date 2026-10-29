@@ -1236,6 +1236,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-10-29T17:10:09.728316+09:00"
+    },
+    {
+      "topic": "Pokemon TCG Valentine's Box 1월 15일 발매 공개",
+      "event_key": "Pokemon TCG Valentine's Box",
+      "source_url": "https://www.pokebeach.com/2026/10/pokemon-tcg-valentines-box-revealed-for-january",
+      "base_date": "2026-10-30",
+      "has_news": true,
+      "hook": "1월 15일, 'Pokemon TCG Valentine's Box'가 발매돼요. PokéBeach 보도에 따르면 가격은 $14.99이고, 3장짜리 'Valentine’s Day' 미니 부스터 20팩, 우체통으로 변형되는 패키지와 스티커 5장으로 구성된다고 해요. 세트 목록은 아직 미공개고, 기사에서는 할로윈 'Trick or Trade'처럼 러브 테마 재수록 카드와 특별 스탬프가 들어갈 가능성을 언급했습니다. 공개될 구성 정보가 관전 포인트예요. 💌 출처: PokéBeach #포켓몬카드 #포켓몬TCG #ValentinesBox",
+      "text": "1월 15일, 'Pokemon TCG Valentine's Box'가 발매돼요. PokéBeach 보도에 따르면 가격은 $14.99이고, 3장짜리 'Valentine’s Day' 미니 부스터 20팩, 우체통으로 변형되는 패키지와 스티커 5장으로 구성된다고 해요. 세트 목록은 아직 미공개고, 기사에서는 할로윈 'Trick or Trade'처럼 러브 테마 재수록 카드와 특별 스탬프가 들어갈 가능성을 언급했습니다. 공개될 구성 정보가 관전 포인트예요. 💌 출처: PokéBeach #포켓몬카드 #포켓몬TCG #ValentinesBox",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-10-30T01:29:44.859175+09:00"
     }
   ],
   "checked": {
@@ -1923,7 +1935,8 @@
     "geeksandgamers.com/mcdonalds-pokemon-tcg-crossover-revealed-begins-november-10th": "2026-10-29T22:58:55.335482+09:00",
     "v.daum.net/v/20261029231632965": "2026-10-29T23:18:54.998390+09:00",
     "gamey.kr/news/articleView.html?idxno=3019393": "2026-10-29T23:28:56.903269+09:00",
-    "mashable.com/life/oct-29-pokemon-tcg-30th-celebration-elite-trainer-box-deal": "2026-10-30T00:08:56.277984+09:00"
+    "mashable.com/life/oct-29-pokemon-tcg-30th-celebration-elite-trainer-box-deal": "2026-10-30T00:08:56.277984+09:00",
+    "pokebeach.com/2026/10/pokemon-tcg-valentines-box-revealed-for-january": "2026-10-30T01:28:55.734066+09:00"
   },
   "slots": {
     "buyguide": "2026-10-29T18",
