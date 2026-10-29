@@ -1170,6 +1170,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-10-28T21:08:54.021417+09:00"
+    },
+    {
+      "topic": "포켓몬 TCG용 상표 출원: Magma Heartbeat·Lightning Impact·Aurora Ripples",
+      "event_key": "Magma Heartbeat·Lightning Impact·Aurora Ripples 상표 출원",
+      "source_url": "https://www.pokebeach.com/2026/10/magma-heartbeat-lightning-impact-aurora-ripples-trademarks-filed-for-the-pokemon-tcg",
+      "base_date": "2026-10-29",
+      "has_news": true,
+      "hook": "포켓몬이 'Magma Heartbeat', 'Lightning Impact', 'Aurora Ripples' 세 상표를 포켓몬 TCG용 카테고리로 출원했어요. 🔍 PokéBeach(2026-10-28) 보도에 따르면, 이름은 엔테이·스이쿤·라이코를 연상시키고, 올해 8월 월드에서 티저된 'Pokemon ex★' 시리즈와 연결해서 보는 의견이 나오고 있대요. 시리즈 내용이나 ex★ 기믹은 아직 불명이라 추가 발표를 기다려야 해요. 출처: PokéBeach #포켓몬카드 #포켓몬TCG #트레이드마크",
+      "text": "포켓몬이 'Magma Heartbeat', 'Lightning Impact', 'Aurora Ripples' 세 상표를 포켓몬 TCG용 카테고리로 출원했어요. 🔍 PokéBeach(2026-10-28) 보도에 따르면, 이름은 엔테이·스이쿤·라이코를 연상시키고, 올해 8월 월드에서 티저된 'Pokemon ex★' 시리즈와 연결해서 보는 의견이 나오고 있대요. 시리즈 내용이나 ex★ 기믹은 아직 불명이라 추가 발표를 기다려야 해요. 출처: PokéBeach #포켓몬카드 #포켓몬TCG #트레이드마크",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-10-29T09:09:23.061405+09:00"
     }
   ],
   "checked": {
@@ -1831,6 +1843,6 @@
   },
   "slots": {
     "buyguide": "2026-10-28T18",
-    "scheduled": "2026-10-28T21"
+    "scheduled": "2026-10-29T09"
   }
 }
