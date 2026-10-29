@@ -1224,6 +1224,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-10-29T16:29:30.772934+09:00"
+    },
+    {
+      "topic": "Pokémon LEGENDS Z-A 'Vivillon Challenge!' 캠페인 공개 — 분떠도리 진화로 비비용 포인트 축적, 660,000포인트 달성 시 비비용 선물",
+      "event_key": "Vivillon Challenge!",
+      "source_url": "https://vivillon-challenge.pokemon.co.jp/ko/",
+      "base_date": "2026-10-29",
+      "has_news": true,
+      "hook": "오늘(10월 29일), 'Vivillon Challenge!' 캠페인 특설 페이지가 공개됐어요 — Pokémon LEGENDS Z-A에서 분떠도리를 진화해 비비용 포인트를 모으는 이벤트입니다 🦋",
+      "text": "오늘(10월 29일), 'Vivillon Challenge!' 캠페인 특설 페이지가 공개됐어요 — Pokémon LEGENDS Z-A에서 분떠도리를 진화해 비비용 포인트를 모으는 이벤트입니다 🦋\n\n포켓몬코리아 공지에 따르면 총 660,000 비비용 포인트 달성 시 비비용(볼의 모양)을 선물하고, 야생에서 잡은 분떠도리나 사이드 미션으로 얻은 분떠도리를 진화시켜도 포인트에 반영된다고 해요. 포인트 수치는 1시간마다 갱신되며, 선물 배포 시점은 추후 공지 예정이라고 합니다. 현재 '이상한 소포'에서 분떠도리를 배포 중이에요.\n\n출처: 포켓몬코리아\n#포켓몬 #VivillonChallenge #PokémonLEGENDSZ-A",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-10-29T17:10:09.728316+09:00"
     }
   ],
   "checked": {
@@ -1903,6 +1915,6 @@
   },
   "slots": {
     "buyguide": "2026-10-29T12",
-    "scheduled": "2026-10-29T13"
+    "scheduled": "2026-10-29T17"
   }
 }
