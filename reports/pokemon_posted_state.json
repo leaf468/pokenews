@@ -1272,6 +1272,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-10-30T13:12:29.187971+09:00"
+    },
+    {
+      "topic": "Pokémon TCG Pocket 'First Partners' Special Pack 출시(배포 시작)",
+      "event_key": "First Partners Special Pack",
+      "source_url": "https://pokemongohub.net/post/tcg-pocket/pokemon-tcg-pocket-special-pack-first-partners-now-available/",
+      "base_date": "2026-10-29",
+      "has_news": true,
+      "hook": "Pokémon TCG Pocket에 'First Partners' Special Pack이 지금 이용 가능해요. 이 세트는 총 30장으로 9개 지역의 모든 스타터(First Partners)를 담고, 서프라이즈로 '30th Celebration'의 RGB 희귀도에서 영감을 받은 고유한 Mew 카드 3종이 포함돼요. 뽑힐 확률은 First Partner 99.95%, Mew 0.05%고요. 스페셜팩은 스페셜팩 스태미나를 회복한 뒤 정해진 시각에 주 1회 개봉할 수 있으며, 12개의 Special Pack Hourglasses를 소비하면 더 빨리 열 수 있어요(해당 아이템은 향후 이벤트 보상으로 제공 예정). Mew 3종을 제외한 카드는 거래 가능합니다 — 개봉 타이밍이 관전 포인트네요 ✨",
+      "text": "Pokémon TCG Pocket에 'First Partners' Special Pack이 지금 이용 가능해요. 이 세트는 총 30장으로 9개 지역의 모든 스타터(First Partners)를 담고, 서프라이즈로 '30th Celebration'의 RGB 희귀도에서 영감을 받은 고유한 Mew 카드 3종이 포함돼요. 뽑힐 확률은 First Partner 99.95%, Mew 0.05%고요. 스페셜팩은 스페셜팩 스태미나를 회복한 뒤 정해진 시각에 주 1회 개봉할 수 있으며, 12개의 Special Pack Hourglasses를 소비하면 더 빨리 열 수 있어요(해당 아이템은 향후 이벤트 보상으로 제공 예정). Mew 3종을 제외한 카드는 거래 가능합니다 — 개봉 타이밍이 관전 포인트네요 ✨\n출처: Pokémon",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-10-30T17:11:33.713398+09:00"
     }
   ],
   "checked": {
@@ -1993,6 +2005,6 @@
   },
   "slots": {
     "buyguide": "2026-10-30T12",
-    "scheduled": "2026-10-30T13"
+    "scheduled": "2026-10-30T17"
   }
 }
