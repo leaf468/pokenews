@@ -1301,6 +1301,18 @@
         "스타필드(현장·SSG.COM) 스타필드위크·쓱데이 포켓몬 카드·상품 판매"
       ],
       "posted_at": "2026-10-30T18:11:42.939557+09:00"
+    },
+    {
+      "topic": "오사카 카드샵 가짜 포켓몬 카드 판매·환불거부",
+      "event_key": "오사카 가품 카드 판매 분쟁",
+      "source_url": "https://v.daum.net/v/20261031035640570",
+      "base_date": "2026-10-31",
+      "has_news": true,
+      "hook": "오사카의 한 카드샵이 5만5000엔짜리 포켓몬 카드를 가짜로 팔고 환불·교환을 거부했어요. 구매자는 국내 카드샵 운영자 겸 유튜버 유감독으로, 가품 확인서·영수증·사진·영상을 들고 매장을 찾아 해결을 요구했지만 매장은 사진과 현물 확인 불가를 이유로 조치를 거부했다고 합니다. 유감독은 일본 소비자센터 등 정식 접수 가능성도 언급했으니, 해외 현장 구매하실 분들은 더욱 신중하세요. 🛑",
+      "text": "오사카의 한 카드샵이 5만5000엔짜리 포켓몬 카드를 가짜로 팔고 환불·교환을 거부했어요. 구매자는 국내 카드샵 운영자 겸 유튜버 유감독으로, 가품 확인서·영수증·사진·영상을 들고 매장을 찾아 해결을 요구했지만 매장은 사진과 현물 확인 불가를 이유로 조치를 거부했다고 합니다. 유감독은 일본 소비자센터 등 정식 접수 가능성도 언급했으니, 해외 현장 구매하실 분들은 더욱 신중하세요. 🛑\n출처: 게임톡\n#포켓몬카드 #포켓몬TCG #가품 #교환환불",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-10-31T04:02:10.361686+09:00"
     }
   ],
   "checked": {
@@ -2035,7 +2047,9 @@
     "mashable.com/life/oct-30-pokemon-tcg-chaos-rising-booster-bundle-deal-clone": "2026-10-30T23:00:20.072084+09:00",
     "gametoc.co.kr/news/articleView.html?idxno=112638": "2026-10-31T01:20:20.657471+09:00",
     "sportskeeda.com/pokemon/pokemon-tcg-pocket-best-mega-tyranitar-ex-deck-guide": "2026-10-31T01:30:22.515306+09:00",
-    "sportskeeda.com/pokemon/pokemon-tcg-pocket-best-mega-dragonite-ex-deck-guide": "2026-10-31T02:20:18.947808+09:00"
+    "sportskeeda.com/pokemon/pokemon-tcg-pocket-best-mega-dragonite-ex-deck-guide": "2026-10-31T02:20:18.947808+09:00",
+    "v.daum.net/v/20261031035640570": "2026-10-31T04:01:13.288956+09:00",
+    "gonintendo.com/contents/66733-get-a-sneak-peek-at-pokemon-tcg-mega-evolution-delta-reign-s-mega-rayquaza-ex-card": "2026-10-31T04:01:13.288956+09:00"
   },
   "slots": {
     "buyguide": "2026-10-30T18",
