@@ -1325,6 +1325,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-10-31T09:03:49.910694+09:00"
+    },
+    {
+      "topic": "Pokémon TCG Pocket 2주년 캠페인·프로모 재배포(10/30~11/20)",
+      "event_key": "Promo Reissue Drop Event 2026",
+      "source_url": "https://tcgnews.kr/article/158",
+      "base_date": "2026-10-30",
+      "has_news": true,
+      "hook": "10월 30일 시작, Pokémon TCG Pocket 2주년 캠페인이 본격화됐어요 🎉 'Promo Reissue Drop Event 2026'과 'Promo Reissue Wonder Pick Event 2026'이 2026년 10월 30일부터 11월 20일까지 진행됩니다. Drop Event는 Promo B 시리즈 볼륨의 Advanced 솔로 배틀을 클리어하면 해당 볼륨 부스터팩 보상과 이벤트 미션으로 'Promo Card Exchange Ticket' 2장을 주고, Wonder Pick은 무료 보너스 픽·유료(스태미나) 원더픽으로 구형 프로모 획득 기회를 제공합니다. 또, 'First Partners' 스페셜팩은 주 1회 개봉 규칙이며 RGB Mew 뽑기율이 0.05%로 보도됐으니 스태미나 관리에 유의하세요. 출처: Pokémon GO Hub, ComicBook.com",
+      "text": "10월 30일 시작, Pokémon TCG Pocket 2주년 캠페인이 본격화됐어요 🎉 'Promo Reissue Drop Event 2026'과 'Promo Reissue Wonder Pick Event 2026'이 2026년 10월 30일부터 11월 20일까지 진행됩니다. Drop Event는 Promo B 시리즈 볼륨의 Advanced 솔로 배틀을 클리어하면 해당 볼륨 부스터팩 보상과 이벤트 미션으로 'Promo Card Exchange Ticket' 2장을 주고, Wonder Pick은 무료 보너스 픽·유료(스태미나) 원더픽으로 구형 프로모 획득 기회를 제공합니다. 또, 'First Partners' 스페셜팩은 주 1회 개봉 규칙이며 RGB Mew 뽑기율이 0.05%로 보도됐으니 스태미나 관리에 유의",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-10-31T13:06:54.623317+09:00"
     }
   ],
   "checked": {
@@ -2076,6 +2088,6 @@
   },
   "slots": {
     "buyguide": "2026-10-31T12",
-    "scheduled": "2026-10-31T09"
+    "scheduled": "2026-10-31T13"
   }
 }
