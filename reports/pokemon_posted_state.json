@@ -1337,6 +1337,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-10-31T13:06:54.623317+09:00"
+    },
+    {
+      "topic": "보이넥스트도어 'Fly Away' 음원 발매",
+      "event_key": "Fly Away",
+      "source_url": "https://v.daum.net/v/20261031230542001",
+      "base_date": "2026-10-31",
+      "has_news": true,
+      "hook": "보이넥스트도어가 부른 'Fly Away' 음원이 10월 30일 오후 6시에 발매됐어요. 포켓몬코리아에 따르면 이 곡은 TV 애니메이션 '포켓몬스터: 원더보야지' 오프닝 테마곡으로 멜론·지니뮤직 등 주요 음원 플랫폼에서 들을 수 있대요. 지니뮤직은 발매 기념으로 친필 사인 폴라로이드·포켓몬 굿즈 증정 이벤트도 진행 중이고, 애니는 11월 3일 저녁 7시 재능TV에서 첫 방송이에요 🎧",
+      "text": "보이넥스트도어가 부른 'Fly Away' 음원이 10월 30일 오후 6시에 발매됐어요. 포켓몬코리아에 따르면 이 곡은 TV 애니메이션 '포켓몬스터: 원더보야지' 오프닝 테마곡으로 멜론·지니뮤직 등 주요 음원 플랫폼에서 들을 수 있대요. 지니뮤직은 발매 기념으로 친필 사인 폴라로이드·포켓몬 굿즈 증정 이벤트도 진행 중이고, 애니는 11월 3일 저녁 7시 재능TV에서 첫 방송이에요 🎧\n출처: 엑스포츠뉴스·게임톡·포모스\n#포켓몬 #포켓몬OST #보이넥스트도어",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-10-31T23:12:57.175226+09:00"
     }
   ],
   "checked": {
@@ -2092,7 +2104,8 @@
     "v.daum.net/v/20261031190145885": "2026-10-31T19:11:47.805775+09:00",
     "kyeonggi.com/article/20261030580303": "2026-10-31T19:11:47.805775+09:00",
     "sportskeeda.com/pokemon/pokemon-tcg-pocket-best-rabbit-jumping-deck-guide": "2026-10-31T20:52:06.479241+09:00",
-    "mashable.com/life/oct-31-pokemon-tcg-30th-celebration-elite-trainer-box-deal-clone": "2026-10-31T20:52:06.479241+09:00"
+    "mashable.com/life/oct-31-pokemon-tcg-30th-celebration-elite-trainer-box-deal-clone": "2026-10-31T20:52:06.479241+09:00",
+    "v.daum.net/v/20261031230542001": "2026-10-31T23:12:06.734701+09:00"
   },
   "slots": {
     "buyguide": "2026-10-31T18",
