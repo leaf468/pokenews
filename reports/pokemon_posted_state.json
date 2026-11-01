@@ -1373,6 +1373,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-11-01T10:16:25.091645+09:00"
+    },
+    {
+      "topic": "Pokémon Champions 메가진화 배틀 접수(한국시간 11/6~11/16)",
+      "event_key": "메가진화 배틀",
+      "source_url": "https://tcgnews.kr/article/157",
+      "base_date": "2026-10-30",
+      "has_news": true,
+      "hook": "11월 6일 오전 11시, Pokémon Champions 온라인 대회 '메가진화 배틀' 접수 시작돼요. 메가진화 가능한 포켓몬만 출전하는 더블배틀로, 게임 내 배틀 → 온라인 대회에서 목록을 골라 참가 신청하면 됩니다. 기간은 한국시간 11/6 오전 11시부터 11/16 오전 11시까지고, 승패가 난 경기를 3회 이상 치르면 참가 칭호 'Mega Evolution Battle Challenger'를 줍니다. 순위별 칭호는 1~100 'Mega Evolution Battle Master', 101~1,000 'Mega Evolution Battle Veteran', 1,001~10,000 'Mega Evolution Battle Ace', 10,001~100,000 'Mega Evolution Battle Rising Star'이며, 보상은 대회 종료 후 게임 내 우편함으로 수령해요. 출처: TCG뉴스 🎮 #포켓몬 #포켓몬TCG",
+      "text": "11월 6일 오전 11시, Pokémon Champions 온라인 대회 '메가진화 배틀' 접수 시작돼요. 메가진화 가능한 포켓몬만 출전하는 더블배틀로, 게임 내 배틀 → 온라인 대회에서 목록을 골라 참가 신청하면 됩니다. 기간은 한국시간 11/6 오전 11시부터 11/16 오전 11시까지고, 승패가 난 경기를 3회 이상 치르면 참가 칭호 'Mega Evolution Battle Challenger'를 줍니다. 순위별 칭호는 1~100 'Mega Evolution Battle Master', 101~1,000 'Mega Evolution Battle Veteran', 1,001~10,000 'Mega Evolution Battle Ace', 10,001~100,000 'Mega Evolution Battle ",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-11-01T13:07:31.404628+09:00"
     }
   ],
   "checked": {
@@ -2142,6 +2154,6 @@
   },
   "slots": {
     "buyguide": "2026-11-01T12",
-    "scheduled": "2026-11-01T09"
+    "scheduled": "2026-11-01T13"
   }
 }
