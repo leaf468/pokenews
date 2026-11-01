@@ -1385,6 +1385,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-11-01T13:07:31.404628+09:00"
+    },
+    {
+      "topic": "Pokemon TCG Live 버전 1.44.0(11/3) 업데이트 — Delta Reign 카드 추가·Expanded 친구 대전 등",
+      "event_key": "Pokemon TCG Live Version 1.44.0",
+      "source_url": "https://gamerant.com/pokemon-tcg-live-november-2026-update-patch-notes/",
+      "base_date": "2026-10-31",
+      "has_news": true,
+      "hook": "포켓몬 TCG Live가 11월 3일(버전 1.44.0) 대형 업데이트를 배포합니다. 이번 패치로 Mega Evolution—Delta Reign 카드가 게임에 추가돼 물리 카드의 대회 합법화 이전에도 플레이해볼 수 있고, 친구에게 Expanded 포맷으로 도전할 수 있는 기능과 친구 초대·매치 요청을 관리하는 새 인박스가 도입돼요. 또한 Night Stretcher로 인한 비정상 렉, Espathra·Team Rocket의 Nidorina 공격 비정상, 덱 편집 필터 지연 및 Build and Battle 검색 문제 등 여러 버그가 수정됩니다. 물리 확장팩 Mega Evolution—Delta Reign은 11월 6일 발매 예정이니 온라인에서 먼저 카드 테스트해보실 분들은 참고하세요. ⚡️",
+      "text": "포켓몬 TCG Live가 11월 3일(버전 1.44.0) 대형 업데이트를 배포합니다. 이번 패치로 Mega Evolution—Delta Reign 카드가 게임에 추가돼 물리 카드의 대회 합법화 이전에도 플레이해볼 수 있고, 친구에게 Expanded 포맷으로 도전할 수 있는 기능과 친구 초대·매치 요청을 관리하는 새 인박스가 도입돼요. 또한 Night Stretcher로 인한 비정상 렉, Espathra·Team Rocket의 Nidorina 공격 비정상, 덱 편집 필터 지연 및 Build and Battle 검색 문제 등 여러 버그가 수정됩니다. 물리 확장팩 Mega Evolution—Delta Reign은 11월 6일 발매 예정이니 온라인에서 먼저 카드 테스트해보실 분들은 참고하세요. ⚡️\n출처: Game",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-11-01T17:08:32.137304+09:00"
     }
   ],
   "checked": {
@@ -2157,6 +2169,6 @@
   },
   "slots": {
     "buyguide": "2026-11-01T12",
-    "scheduled": "2026-11-01T13"
+    "scheduled": "2026-11-01T17"
   }
 }
