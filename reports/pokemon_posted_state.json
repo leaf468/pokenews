@@ -1409,6 +1409,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-11-01T21:04:52.745693+09:00"
+    },
+    {
+      "topic": "Goldin 경매서 Art Academy Mudkip(PSA10) 4.88M 달러 낙찰",
+      "event_key": "2015 Pokémon Japanese XY Promo Art Academy Daisuke Ochiai Mudkip (PSA GEM MT 10)",
+      "source_url": "https://icv2.com/articles/news/view/63748/goldins-2026-pokemon-30th-anniversary-auction-rakes-over-28-million",
+      "base_date": "2026-10-29",
+      "has_news": true,
+      "hook": "Goldin의 '2026 Pokémon 30th Anniversary' 경매(10월 25일)에서 2015 Pokémon Japanese XY Promo Art Academy Daisuke Ochiai Mudkip PSA GEM MT 10이 4,880,000달러에 낙찰됐어요. 이번 낙찰은 해당 미즈고로우 카드의 공개 거래 최고액 기록이며, Goldin 발표 시점에 PSA GEM MT 10 등급은 극소수(3장)를 기록하고 있대요. 경매 전체 합계는 2,800만 달러를 넘겼다고 합니다 — 낙찰가 어디까지 뛸지 같이 지켜볼까요. 💥",
+      "text": "Goldin의 '2026 Pokémon 30th Anniversary' 경매(10월 25일)에서 2015 Pokémon Japanese XY Promo Art Academy Daisuke Ochiai Mudkip PSA GEM MT 10이 4,880,000달러에 낙찰됐어요. 이번 낙찰은 해당 미즈고로우 카드의 공개 거래 최고액 기록이며, Goldin 발표 시점에 PSA GEM MT 10 등급은 극소수(3장)를 기록하고 있대요. 경매 전체 합계는 2,800만 달러를 넘겼다고 합니다 — 낙찰가 어디까지 뛸지 같이 지켜볼까요. 💥\n출처: ICv2, Trading Card Journal\n#포켓몬카드 #포켓몬TCG #경매 #Goldin",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-11-02T09:06:23.322585+09:00"
     }
   ],
   "checked": {
@@ -2190,6 +2202,6 @@
   },
   "slots": {
     "buyguide": "2026-11-01T18",
-    "scheduled": "2026-11-01T21"
+    "scheduled": "2026-11-02T09"
   }
 }
