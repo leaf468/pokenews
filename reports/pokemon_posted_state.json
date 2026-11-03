@@ -1529,6 +1529,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-11-02T21:08:30.470118+09:00"
+    },
+    {
+      "topic": "Target, 포켓몬 TCG 구매에 로터리(추첨) 시스템 도입",
+      "event_key": "Target Pokémon TCG Lottery",
+      "source_url": "https://gamerant.com/target-pokemon-tcg-lottery-drawing-system-explained/",
+      "base_date": "2026-11-02",
+      "has_news": true,
+      "hook": "Target이 포켓몬 TCG 제품 구매에 로터리(추첨) 시스템을 도입했고 지금 적용 중이에요. 현재 이 시스템은 Scarlet and Violet: Destined Rivals three-pack blister pack 페이지에 우선 적용되어 있고, 응모는 로그인한 게스트당 1회만 가능하다고 합니다. 응모 마감은 미국 동부시간(ET) 11월 4일 오전 11시까지며, 당첨자는 이메일로 통지받고 그때 결제를 완료하면 구매가 성사돼요(자동결제 아님). 당첨품은 환불·교환 불가이며, 당첨되지 않은 경우 추가 재고가 생기면 다시 구매 기회가 주어질 수 있다고 합니다. 응모 버튼이 안 보이면 Target 앱을 최신 버전으로 업데이트하거나 데스크톱에서 페이지를 확인해 보세요. 출처: GameRant·Polygon",
+      "text": "Target이 포켓몬 TCG 제품 구매에 로터리(추첨) 시스템을 도입했고 지금 적용 중이에요. 현재 이 시스템은 Scarlet and Violet: Destined Rivals three-pack blister pack 페이지에 우선 적용되어 있고, 응모는 로그인한 게스트당 1회만 가능하다고 합니다. 응모 마감은 미국 동부시간(ET) 11월 4일 오전 11시까지며, 당첨자는 이메일로 통지받고 그때 결제를 완료하면 구매가 성사돼요(자동결제 아님). 당첨품은 환불·교환 불가이며, 당첨되지 않은 경우 추가 재고가 생기면 다시 구매 기회가 주어질 수 있다고 합니다. 응모 버튼이 안 보이면 Target 앱을 최신 버전으로 업데이트하거나 데스크톱에서 페이지를 확인해 보세요. 출처: GameRant·Polygon\n#포켓",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-11-03T09:06:44.036801+09:00"
     }
   ],
   "checked": {
@@ -2379,6 +2391,6 @@
   },
   "slots": {
     "buyguide": "2026-11-02T18",
-    "scheduled": "2026-11-02T21"
+    "scheduled": "2026-11-03T09"
   }
 }
