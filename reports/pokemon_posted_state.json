@@ -1606,6 +1606,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-11-04T17:10:02.504086+09:00"
+    },
+    {
+      "topic": "GS25 빼빼로 굿즈 출시 3일 만에 약 2억 매출",
+      "event_key": "2026 GS25 빼스티벌",
+      "source_url": "https://v.daum.net/v/20261105071122085",
+      "base_date": "2026-11-05",
+      "has_news": true,
+      "hook": "GS25가 11월 1일 선보인 '호빵맨·짱구' 캐릭터 굿즈 선물세트가 출시 사흘(1~3일) 만에 약 2억 원 매출을 올렸어요. 인기 상품은 '호빵맨 줄자 키링 빼빼로 세트', '짱구 흰둥이 똑딱이 담요 세트', '호빵맨 손톱깎이 빼빼로 세트'였고 일부는 우리동네GS 앱에서 품절이 나왔습니다. 행사 이름은 '2026 GS25 빼스티벌(GS25 PPESTIVAL)'이에요.  ",
+      "text": "GS25가 11월 1일 선보인 '호빵맨·짱구' 캐릭터 굿즈 선물세트가 출시 사흘(1~3일) 만에 약 2억 원 매출을 올렸어요. 인기 상품은 '호빵맨 줄자 키링 빼빼로 세트', '짱구 흰둥이 똑딱이 담요 세트', '호빵맨 손톱깎이 빼빼로 세트'였고 일부는 우리동네GS 앱에서 품절이 나왔습니다. 행사 이름은 '2026 GS25 빼스티벌(GS25 PPESTIVAL)'이에요.  \nCU는 포켓몬·다마고치 협업 굿즈 28종을 내놓고 포켓몬 콘셉트 스토어 등 팝업을 4일부터 12일까지 운영한다고 하니, 포켓몬 굿즈 노리시는 분들은 앱·팝업 일정 확인해 보세요 🎁  \n출처: 뉴스1·매일경제·전자신문  \n#포켓몬카드 #포켓몬굿즈 #빼빼로데이",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-11-05T07:19:40.376193+09:00"
     }
   ],
   "checked": {
@@ -2490,7 +2502,8 @@
     "mashable.com/life/nov-4-pokemon-tcg-prismatic-evolutions-elite-trainer-box-deal": "2026-11-04T23:07:12.745266+09:00",
     "mashable.com/life/nov-4-pokemon-tcg-30th-delta-reign-elite-trainer-box-preorder-deal": "2026-11-04T23:27:12.574960+09:00",
     "polygon.com/pokemon-tcg-walmart-collectibles-drawing-upc-price-stock-time-delta-reign": "2026-11-05T02:27:37.503384+09:00",
-    "pokemongohub.net/post/tcg-pocket/pokemon-tcg-pocket-dual-fusion-emblem-event": "2026-11-05T06:57:34.146620+09:00"
+    "pokemongohub.net/post/tcg-pocket/pokemon-tcg-pocket-dual-fusion-emblem-event": "2026-11-05T06:57:34.146620+09:00",
+    "v.daum.net/v/20261105071122085": "2026-11-05T07:17:36.679086+09:00"
   },
   "slots": {
     "buyguide": "2026-11-04T18",
