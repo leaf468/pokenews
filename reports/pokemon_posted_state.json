@@ -1630,6 +1630,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-11-05T13:10:50.154384+09:00"
+    },
+    {
+      "topic": "Amazon에서 Pokémon TCG Prismatic Evolutions Elite Trainer Box가 $149에 판매",
+      "event_key": "Pokémon TCG Prismatic Evolutions Elite Trainer Box",
+      "source_url": "https://mashable.com/life/nov-4-pokemon-tcg-prismatic-evolutions-elite-trainer-box-deal",
+      "base_date": "2026-11-04",
+      "has_news": true,
+      "hook": "이 박스, 아마존에서 $149에 올라왔어요. Pokémon TCG Prismatic Evolutions Elite Trainer Box가 아마존에 $149(판매자: J & M COLLECTIBLES, 최근 12개월 평점 100%)으로 등록돼 있고, 구성은 샤이니 이브이 프로모 1장·부스터 9팩·이브이 슬리브 65장·에너지 45장·데미지 주사위 6개·코인 주사위·특수 상태 마커 2개·가이드·칸막이 있는 수납 박스예요. 재고 빨리 빠질 수 있으니 관심 있으면 서두르세요. 🛒 출처: Mashable #포켓몬카드 #포켓몬TCG",
+      "text": "이 박스, 아마존에서 $149에 올라왔어요. Pokémon TCG Prismatic Evolutions Elite Trainer Box가 아마존에 $149(판매자: J & M COLLECTIBLES, 최근 12개월 평점 100%)으로 등록돼 있고, 구성은 샤이니 이브이 프로모 1장·부스터 9팩·이브이 슬리브 65장·에너지 45장·데미지 주사위 6개·코인 주사위·특수 상태 마커 2개·가이드·칸막이 있는 수납 박스예요. 재고 빨리 빠질 수 있으니 관심 있으면 서두르세요. 🛒 출처: Mashable #포켓몬카드 #포켓몬TCG",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-11-05T21:11:40.696897+09:00"
     }
   ],
   "checked": {
@@ -2528,6 +2540,6 @@
   },
   "slots": {
     "buyguide": "2026-11-05T18",
-    "scheduled": "2026-11-05T17"
+    "scheduled": "2026-11-05T21"
   }
 }
