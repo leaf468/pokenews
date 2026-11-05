@@ -1618,6 +1618,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-11-05T07:19:40.376193+09:00"
+    },
+    {
+      "topic": "Pokémon TCG Pocket Dual Fusion Emblem Event(11/6~11/16) 개시",
+      "event_key": "Pokémon TCG Pocket Dual Fusion Emblem Event",
+      "source_url": "https://pokemongohub.net/post/tcg-pocket/pokemon-tcg-pocket-dual-fusion-emblem-event/",
+      "base_date": "2026-11-04",
+      "has_news": true,
+      "hook": "Pokémon TCG Pocket Dual Fusion Emblem Event이 11월 6일부터 11월 16일까지 진행돼요. Versus 배틀 승리로 프로필에 장식할 엠블럼을 얻을 수 있고, 1승으로 Dual Fusion White Emblem, 3승으로 Dual Fusion Bronze Emblem, 5승으로 Dual Fusion Silver Emblem이 지급됩니다. Dual Fusion Gold Emblem도 보상 목록에 포함돼요. 참여 미션은 1/3/5/10번 Versus 참여마다 12×Pack Hourglass, 승리 미션은 1승=1000 Shinedust·3승=1500·5승=2000 Shinedust로 정리돼 있으니 온라인 대전으로 승수 쌓아보세요. 🔰 출처: Pokémon GO Hub #포켓몬TCGPocket #포켓몬카드 #DualFusion",
+      "text": "Pokémon TCG Pocket Dual Fusion Emblem Event이 11월 6일부터 11월 16일까지 진행돼요. Versus 배틀 승리로 프로필에 장식할 엠블럼을 얻을 수 있고, 1승으로 Dual Fusion White Emblem, 3승으로 Dual Fusion Bronze Emblem, 5승으로 Dual Fusion Silver Emblem이 지급됩니다. Dual Fusion Gold Emblem도 보상 목록에 포함돼요. 참여 미션은 1/3/5/10번 Versus 참여마다 12×Pack Hourglass, 승리 미션은 1승=1000 Shinedust·3승=1500·5승=2000 Shinedust로 정리돼 있으니 온라인 대전으로 승수 쌓아보세요. 🔰 출처: Pokémon GO Hub #포켓몬T",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-11-05T13:10:50.154384+09:00"
     }
   ],
   "checked": {
@@ -2513,6 +2525,6 @@
   },
   "slots": {
     "buyguide": "2026-11-05T12",
-    "scheduled": "2026-11-05T09"
+    "scheduled": "2026-11-05T13"
   }
 }
