@@ -1666,6 +1666,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-11-06T10:00:29.301402+09:00"
+    },
+    {
+      "topic": "Amazon에서 Pokémon TCG Mega Evolution Delta Reign Booster Display Box 예약가 역대 최저",
+      "event_key": "Pokémon TCG Mega Evolution Delta Reign Booster Display Box",
+      "source_url": "https://mashable.com/life/nov-5-pokemon-tcg-delta-reign-booster-display-box-preorder-deal",
+      "base_date": "2026-11-05",
+      "has_news": true,
+      "hook": "Pokémon TCG Mega Evolution Delta Reign Booster Display Box가 아마존에서 역대 최저가 $242.99로 예약 중이에요. 이 박스는 36팩 구성이라 팩당 약 $6.75 수준이고, 판매자는 BetterShopping4You로 표시되며 배송은 현재 11월 12일 도착 예정이라 11월 6일 발매일에 바로 개봉하긴 어려울 수 있어요. 주문할 분은 배송 예정일과 셀러 정보를 확인하세요. 📦",
+      "text": "Pokémon TCG Mega Evolution Delta Reign Booster Display Box가 아마존에서 역대 최저가 $242.99로 예약 중이에요. 이 박스는 36팩 구성이라 팩당 약 $6.75 수준이고, 판매자는 BetterShopping4You로 표시되며 배송은 현재 11월 12일 도착 예정이라 11월 6일 발매일에 바로 개봉하긴 어려울 수 있어요. 주문할 분은 배송 예정일과 셀러 정보를 확인하세요. 📦\n출처: Mashable\n#포켓몬카드 #포켓몬TCG #DeltaReign",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-11-06T13:13:08.069015+09:00"
     }
   ],
   "checked": {
@@ -2604,6 +2616,6 @@
   },
   "slots": {
     "buyguide": "2026-11-06T12",
-    "scheduled": "2026-11-06T09"
+    "scheduled": "2026-11-06T13"
   }
 }
