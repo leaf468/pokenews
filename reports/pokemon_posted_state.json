@@ -1690,6 +1690,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-11-06T17:00:13.034528+09:00"
+    },
+    {
+      "topic": "Mega Evolution—Delta Reign 정식 발매 및 고가 카드 시세",
+      "event_key": "Mega Evolution—Delta Reign",
+      "source_url": "https://www.ign.com/articles/pokemon-tcg-most-valuable-delta-reign-cards",
+      "base_date": "2026-11-06",
+      "has_news": true,
+      "hook": "Mega Evolution—Delta Reign이 11월 6일 정식 발매됐어요. IGN 보도에 따르면 TCGplayer 시세 기준으로 Mega Rayquaza ex가 $378.53·$349.35로 상위권을 차지하고, Raikou ex $63.70, Zinnia's Trust $49.49, Mega Golurk ex $43.99, Eevee $30.37 등 일부 카드가 이미 수십~수백 달러에 거래되고 있대요. GoNintendo는 발매 기념으로 구매 $15 이상 시 GameStop(Groudon), Best Buy(Giratina), Hot Topic·Five Below·Barnes & Noble·Macy’s(Kyogre) 프로모 카드를 증정한다고 전했어요. 팩 개봉·구매 계획 있으신 분들, 시세 변동 주의하세요—낙찰가 어디까지 갈지 같이 지켜볼까요? 🎴 출처: IGN, GoNintendo #포켓몬카드 #포켓몬TCG #DeltaReign",
+      "text": "Mega Evolution—Delta Reign이 11월 6일 정식 발매됐어요. IGN 보도에 따르면 TCGplayer 시세 기준으로 Mega Rayquaza ex가 $378.53·$349.35로 상위권을 차지하고, Raikou ex $63.70, Zinnia's Trust $49.49, Mega Golurk ex $43.99, Eevee $30.37 등 일부 카드가 이미 수십~수백 달러에 거래되고 있대요. GoNintendo는 발매 기념으로 구매 $15 이상 시 GameStop(Groudon), Best Buy(Giratina), Hot Topic·Five Below·Barnes & Noble·Macy’s(Kyogre) 프로모 카드를 증정한다고 전했어요. 팩 개봉·구매 계획 있으신 분들, 시세 변동 주의하",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-11-07T09:01:47.401577+09:00"
     }
   ],
   "checked": {
@@ -2658,6 +2670,6 @@
   },
   "slots": {
     "buyguide": "2026-11-06T18",
-    "scheduled": "2026-11-06T21"
+    "scheduled": "2026-11-07T09"
   }
 }
