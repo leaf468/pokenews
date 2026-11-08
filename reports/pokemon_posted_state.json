@@ -1767,6 +1767,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-11-08T09:03:40.088269+09:00"
+    },
+    {
+      "topic": "Pokemon TCG Live 코드 'DELTAREIGN26'로 Delta Reign 부스터 4팩 무료 배포",
+      "event_key": "DELTAREIGN26",
+      "source_url": "https://gamerant.com/pokemon-tcg-live-free-delta-reign-packs-code/",
+      "base_date": "2026-11-08",
+      "has_news": true,
+      "hook": "게임 내 코드로 Delta Reign 부스터팩 4개를 무료로 받을 수 있어요 — 단, Pokemon TCG Live 한정입니다. 게임 내 상점에서 코드 \"DELTAREIGN26\"을 입력하면 Delta Reign 부스터 4팩을 받을 수 있고, 코드는 2027년 2월 4일 9:00 a.m. PT까지 유효해요. 실물 팩이 아닌 디지털 보상인 점 유의하세요. 😊",
+      "text": "게임 내 코드로 Delta Reign 부스터팩 4개를 무료로 받을 수 있어요 — 단, Pokemon TCG Live 한정입니다. 게임 내 상점에서 코드 \"DELTAREIGN26\"을 입력하면 Delta Reign 부스터 4팩을 받을 수 있고, 코드는 2027년 2월 4일 9:00 a.m. PT까지 유효해요. 실물 팩이 아닌 디지털 보상인 점 유의하세요. 😊\n출처: GameRant\n#포켓몬TCG #포켓몬카드 #DeltaReign",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-11-08T13:03:09.290235+09:00"
     }
   ],
   "checked": {
@@ -2754,6 +2766,6 @@
   },
   "slots": {
     "buyguide": "2026-11-08T12",
-    "scheduled": "2026-11-08T09"
+    "scheduled": "2026-11-08T13"
   }
 }
