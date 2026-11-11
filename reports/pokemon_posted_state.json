@@ -1902,6 +1902,18 @@
         "서울옥션·전시 행사 내 포켓몬 카드 전시(현장 전시·관련 판매 가능성)"
       ],
       "posted_at": "2026-11-11T12:07:44.671459+09:00"
+    },
+    {
+      "topic": "Delta Reign Elite Trainer Box 미국 소매가 급락",
+      "event_key": "Pokémon TCG: Delta Reign Elite Trainer Box",
+      "source_url": "https://www.ign.com/articles/pokemon-tcgs-delta-reign-elite-trainer-box-almost-market-price",
+      "base_date": "2026-11-10",
+      "has_news": true,
+      "hook": "Pokémon TCG: Delta Reign Elite Trainer Box가 벌써 $89.95까지 떨어졌어요. IGN(11/10) 보도에 따르면 Walmart에서 서드파티 판매자 'Realgooddeal' 상품이 Walmart 이행으로 $89.95, Amazon에선 'venado'가 $98.49 최저가를 기록 중이고 정가 $139.99에서 큰 폭 하락이라고 해요. TCGplayer 추정 시세 $88.12와 거의 근접하며, 기사 작성 시 무료배송으로 11월 12일 도착 예정으로 표기됐습니다. ETB 구성은 Delta Reign 부스터 9팩·가이오가 풀아트 프로모·슬리브 65장·에너지 40장·가이드·데미지 주사위 6개·대회용 코인플립·플라스틱 코인·코드카드·수납 박스(칸막이 6개 포함)예요. 가격 변동이 빠르니 구매하실 분은 셀러·배송 정보 꼭 확인하세요. 💸📦 출처: IGN #포켓몬카드 #포켓몬TCG #DeltaReign",
+      "text": "Pokémon TCG: Delta Reign Elite Trainer Box가 벌써 $89.95까지 떨어졌어요. IGN(11/10) 보도에 따르면 Walmart에서 서드파티 판매자 'Realgooddeal' 상품이 Walmart 이행으로 $89.95, Amazon에선 'venado'가 $98.49 최저가를 기록 중이고 정가 $139.99에서 큰 폭 하락이라고 해요. TCGplayer 추정 시세 $88.12와 거의 근접하며, 기사 작성 시 무료배송으로 11월 12일 도착 예정으로 표기됐습니다. ETB 구성은 Delta Reign 부스터 9팩·가이오가 풀아트 프로모·슬리브 65장·에너지 40장·가이드·데미지 주사위 6개·대회용 코인플립·플라스틱 코인·코드카드·수납 박스(칸막이 6개 포함)예요. 가격 변동이 빠르",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-11-11T13:07:31.717815+09:00"
     }
   ],
   "checked": {
@@ -2986,6 +2998,6 @@
   },
   "slots": {
     "buyguide": "2026-11-11T12",
-    "scheduled": "2026-11-11T09"
+    "scheduled": "2026-11-11T13"
   }
 }
