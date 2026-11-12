@@ -1950,6 +1950,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-11-12T17:12:07.489526+09:00"
+    },
+    {
+      "topic": "Pokemon Day 2027 Collection 발매(2027-01-29)",
+      "event_key": "Pokemon Day 2027 Collection",
+      "source_url": "https://www.pokebeach.com/2026/11/pokemon-day-2027-collection-revealed-for-january",
+      "base_date": "2026-11-13",
+      "has_news": true,
+      "hook": "1월 29일, 'Pokemon Day 2027 Collection'이 발매돼요. 🎁 세트는 'Pokemon Day 2027' 스탬프가 있는 특별 피카츄 프로모 카드와 부스터팩 3장, 기념 코인, 그리고 포켓몬 TCG Live용 코드 카드를 포함하며 소매가는 $14.99로 공개됐습니다. 포켓몬데이는 매년 2월 27일(2027년 기준)을 기념하는 날이에요 — 세부 이미지·구성은 추가 공개될 예정이라고 하네요. 출처: ICv2·PokéBeach",
+      "text": "1월 29일, 'Pokemon Day 2027 Collection'이 발매돼요. 🎁 세트는 'Pokemon Day 2027' 스탬프가 있는 특별 피카츄 프로모 카드와 부스터팩 3장, 기념 코인, 그리고 포켓몬 TCG Live용 코드 카드를 포함하며 소매가는 $14.99로 공개됐습니다. 포켓몬데이는 매년 2월 27일(2027년 기준)을 기념하는 날이에요 — 세부 이미지·구성은 추가 공개될 예정이라고 하네요. 출처: ICv2·PokéBeach\n#포켓몬카드 #포켓몬TCG #PokemonDay2027",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-11-13T01:58:11.595950+09:00"
     }
   ],
   "checked": {
@@ -3064,7 +3076,9 @@
     "actuabd.com/Une-collection-exceptionnelle-de-cartes-Pokemon-aux-encheres-a-l-Hotel-des": "2026-11-13T00:27:17.774696+09:00",
     "essential-japan.com/news/pokemon-releases-new-team-rocket-board-game-featuring-60-exclusive-cards": "2026-11-13T00:47:18.913348+09:00",
     "arch-web.com.tw/%e7%a7%91%e5%ad%b8%e6%8a%80%e8%a1%93/%e6%9c%80%e4%bd%b3-pokemon-tcg-%e4%bc%98%e6%83%a0%ef%bc%9adelta-reign-%e8%a1%a5%e5%85%85%e5%8c%85%e5%9c%a8%e4%ba%9a%e9%a9%ac%e9%80%8a%e4%b8%8a%e8%8e%b7%e5%be%97%e6%96%b0%e7%9a%84%e9%99%8d%e4%bb%b7/719240": "2026-11-13T00:57:20.286180+09:00",
-    "levelup.com/en/news/pokemon-tcg-craze-leads-to-fathers-arrest-after-leaving-6-year-old-daughter-to-hold-place-in-line-overnight": "2026-11-13T01:27:21.305982+09:00"
+    "levelup.com/en/news/pokemon-tcg-craze-leads-to-fathers-arrest-after-leaving-6-year-old-daughter-to-hold-place-in-line-overnight": "2026-11-13T01:27:21.305982+09:00",
+    "pokebeach.com/2026/11/pokemon-day-2027-collection-revealed-for-january": "2026-11-13T01:57:19.692583+09:00",
+    "icv2.com/articles/news/view/63870/pokemon-day-2027-collection-hits-preorder": "2026-11-13T01:57:19.692583+09:00"
   },
   "slots": {
     "buyguide": "2026-11-12T18",
