@@ -1914,6 +1914,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-11-11T13:07:31.717815+09:00"
+    },
+    {
+      "topic": "PSA 라벨 위조 판매 발견",
+      "event_key": "PSA Counterfeiting Scheme",
+      "source_url": "https://gamerant.com/pokemon-tcg-psa-counterfeit-fake-labels/",
+      "base_date": "2026-11-11",
+      "has_news": true,
+      "hook": "가짜 PSA 라벨이 온라인에서 팔리고 있어요 — 수집가들 주의하세요. GameRant(11/11) 보도에 따르면 AliExpress 등에서 카드명·발매연도·등급·인증번호와 보안 패치까지 흉내 낸 맞춤형 PSA 라벨이 유통되고, 정품 라벨을 떼어 다른 카드에 붙이는 사례도 보고됐다고 해요. 거래 전 PSA 인증 페이지의 사진과 실제 카드가 일치하는지, 케이스에 개봉·재부착 흔적이 없는지 꼼꼼히 확인하세요. 출처: GameRant 🛡️ #포켓몬카드 #포켓몬TCG #PSA",
+      "text": "가짜 PSA 라벨이 온라인에서 팔리고 있어요 — 수집가들 주의하세요. GameRant(11/11) 보도에 따르면 AliExpress 등에서 카드명·발매연도·등급·인증번호와 보안 패치까지 흉내 낸 맞춤형 PSA 라벨이 유통되고, 정품 라벨을 떼어 다른 카드에 붙이는 사례도 보고됐다고 해요. 거래 전 PSA 인증 페이지의 사진과 실제 카드가 일치하는지, 케이스에 개봉·재부착 흔적이 없는지 꼼꼼히 확인하세요. 출처: GameRant 🛡️ #포켓몬카드 #포켓몬TCG #PSA",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-11-12T09:07:41.868809+09:00"
     }
   ],
   "checked": {
@@ -3018,6 +3030,6 @@
   },
   "slots": {
     "buyguide": "2026-11-11T18",
-    "scheduled": "2026-11-11T21"
+    "scheduled": "2026-11-12T09"
   }
 }
