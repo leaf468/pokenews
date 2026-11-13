@@ -1986,6 +1986,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-11-13T13:09:57.647217+09:00"
+    },
+    {
+      "topic": "포켓몬코리아 공지: 추첨 결과 연기 및 약관 동의 기간 설정 게시(2026-11-13)",
+      "event_key": "추첨 결과 연기 및 약관 동의 기간 설정 안내",
+      "source_url": "https://www.pokemon-team-masters.com/pages/news/news-detail/news-detail?id=8",
+      "base_date": "2026-11-13",
+      "has_news": true,
+      "hook": "포켓몬코리아(카드 게임)가 2026-11-13 '추첨 결과 연기 및 약관 동의 기간 설정 안내' 공지를 게시했어요. 제목에는 '추첨 결과 연기'와 '약관 동의 기간 설정'이 각각 명시돼 있습니다. 이번 공지는 일본 쪽에서 확장팩 '하도우 시커' 발매(11월 27일)를 중심으로 추첨 일정이 몰린 시기와 맞물려 나왔습니다(ポケカ抽選×AI実験室·note, 2026-11-12). 주목할 소식입니다. 🔔 출처: 포켓몬코리아(카드 게임)·ポケカ抽選×AI実験室(note) #포켓몬카드 #포켓몬TCG #하도우시커",
+      "text": "포켓몬코리아(카드 게임)가 2026-11-13 '추첨 결과 연기 및 약관 동의 기간 설정 안내' 공지를 게시했어요. 제목에는 '추첨 결과 연기'와 '약관 동의 기간 설정'이 각각 명시돼 있습니다. 이번 공지는 일본 쪽에서 확장팩 '하도우 시커' 발매(11월 27일)를 중심으로 추첨 일정이 몰린 시기와 맞물려 나왔습니다(ポケカ抽選×AI実験室·note, 2026-11-12). 주목할 소식입니다. 🔔 출처: 포켓몬코리아(카드 게임)·ポケカ抽選×AI実験室(note) #포켓몬카드 #포켓몬TCG #하도우시커",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-11-13T15:30:35.022464+09:00"
     }
   ],
   "checked": {
@@ -3118,7 +3130,8 @@
     "24horas.cl/tendencias/videojuegos/nintendo/subastaron-en-francia-exclusiva-carta-de-pokemon-pikachu-illustrator": "2026-11-13T07:47:36.434765+09:00",
     "note.com/satoru_kanzaki/n/n9eb3b51f903a?hl=ko": "2026-11-13T10:17:51.440768+09:00",
     "msn.com/en-us/news/other/the-pok%C3%A9mon-tcg-s-delta-reign-booster-bundle-is-down-to-a-new-record-low-on-amazon-save-almost-10/ar-AA2hkrS5": "2026-11-13T12:27:52.930122+09:00",
-    "msn.com/en-us/news/other/pok%C3%A9mon-tcg-craze-leads-to-father-s-arrest-after-leaving-6-year-old-daughter-to-hold-place-in-line-overnight/ar-AA2hiYlG": "2026-11-13T14:58:06.435622+09:00"
+    "msn.com/en-us/news/other/pok%C3%A9mon-tcg-craze-leads-to-father-s-arrest-after-leaving-6-year-old-daughter-to-hold-place-in-line-overnight/ar-AA2hiYlG": "2026-11-13T14:58:06.435622+09:00",
+    "pokemon-team-masters.com/pages/news/news-detail/news-detail?id=8": "2026-11-13T15:28:06.090910+09:00"
   },
   "slots": {
     "buyguide": "2026-11-13T12",
