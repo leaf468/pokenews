@@ -1974,6 +1974,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-11-13T09:14:35.869361+09:00"
+    },
+    {
+      "topic": "Pokémon TCG 30th Celebration Ultra-Premium Collection 재입고(주요 소매점)",
+      "event_key": "Pokémon TCG 30th Celebration Ultra-Premium Collection",
+      "source_url": "https://mashable.com/life/pokemon-30th-celebration-ultra-premium-collection-restock-where-to-buy",
+      "base_date": "2026-11-12",
+      "has_news": true,
+      "hook": "이거 아직 구할 기회 있어요 — Pokémon TCG 30th Celebration Ultra-Premium Collection(Day: Espeon / Night: Umbreon)이 11월 6일 출시된 뒤, 11월 12일 기준 Amazon·Walmart·Target·Best Buy·Pokémon Center 등 주요 소매점에서 재입고 소식이 올라왔어요. 각 박스에는 피카츄 ex 프로모와 Espeon ex 또는 Umbreon ex 프로모, 플레이매트, 메탈 코인, 65장 슬리브·덱박스, 데미지 주사위 6개, 29부스터(＋Classic Collection 부스터 1개) 등 기념 구성품이 들어갑니다. 매장별 구성·구매 제한 차이가 있으니 장바구니 담기 전 확인하세요. 🛒",
+      "text": "이거 아직 구할 기회 있어요 — Pokémon TCG 30th Celebration Ultra-Premium Collection(Day: Espeon / Night: Umbreon)이 11월 6일 출시된 뒤, 11월 12일 기준 Amazon·Walmart·Target·Best Buy·Pokémon Center 등 주요 소매점에서 재입고 소식이 올라왔어요. 각 박스에는 피카츄 ex 프로모와 Espeon ex 또는 Umbreon ex 프로모, 플레이매트, 메탈 코인, 65장 슬리브·덱박스, 데미지 주사위 6개, 29부스터(＋Classic Collection 부스터 1개) 등 기념 구성품이 들어갑니다. 매장별 구성·구매 제한 차이가 있으니 장바구니 담기 전 확인하세요. 🛒\n출처: Mashable·Critical ",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-11-13T13:09:57.647217+09:00"
     }
   ],
   "checked": {
@@ -3109,6 +3121,6 @@
   },
   "slots": {
     "buyguide": "2026-11-13T12",
-    "scheduled": "2026-11-13T09"
+    "scheduled": "2026-11-13T13"
   }
 }
