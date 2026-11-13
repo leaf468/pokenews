@@ -1998,6 +1998,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-11-13T15:30:35.022464+09:00"
+    },
+    {
+      "topic": "Walmart의 Pokémon 30th Anniversary TCG 매장 공급 및 온라인 추첨(11/12)",
+      "event_key": "Walmart Pokémon 30th Anniversary restock & raffle",
+      "source_url": "https://www.polygon.com/walmart-black-friday-deals-pokemon-30th-anniversary-upc-drawing-tcg-price/",
+      "base_date": "2026-11-12",
+      "has_news": true,
+      "hook": "Walmart가 11월 12일(목)부터 Pokémon 30th Anniversary TCG 제품을 매장에 풀고, 온라인으로 같은 날 5–6pm EST에 추첨을 진행했어요 🔔. 매장판으로는 Cynthia's Garchomp ex Premium Collection(6팩, $49.97)과 Sylveon·Greninja ex Boxes(4팩, $34.97) 등이 확인됐고, 온라인 추첨 품목에는 Pokémon TCG: 30TH Celebration Figure Collection — Mew and Mewtwo(5팩, $39.97)과 Ultra-Premium Collection (Day and Night, 30팩, $224.07) 등이 포함됩니다. 추첨은 Walmart 계정과 활성 결제 프로필이 필요하며 당첨 통보는 다음날부터 최대 72시간까지 걸리고 자동 결제되니 유의하세요. 출처: Polygon #포켓몬카드 #포켓몬TCG #BlackFriday",
+      "text": "Walmart가 11월 12일(목)부터 Pokémon 30th Anniversary TCG 제품을 매장에 풀고, 온라인으로 같은 날 5–6pm EST에 추첨을 진행했어요 🔔. 매장판으로는 Cynthia's Garchomp ex Premium Collection(6팩, $49.97)과 Sylveon·Greninja ex Boxes(4팩, $34.97) 등이 확인됐고, 온라인 추첨 품목에는 Pokémon TCG: 30TH Celebration Figure Collection — Mew and Mewtwo(5팩, $39.97)과 Ultra-Premium Collection (Day and Night, 30팩, $224.07) 등이 포함됩니다. 추첨은 Walmart 계정과 활성 결제 프로필이 필요하며 당첨 통보는 ",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-11-13T17:11:17.548914+09:00"
     }
   ],
   "checked": {
@@ -3137,6 +3149,6 @@
   },
   "slots": {
     "buyguide": "2026-11-13T12",
-    "scheduled": "2026-11-13T13"
+    "scheduled": "2026-11-13T17"
   }
 }
