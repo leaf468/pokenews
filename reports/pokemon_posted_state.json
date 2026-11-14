@@ -2010,6 +2010,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-11-13T17:11:17.548914+09:00"
+    },
+    {
+      "topic": "암호 CELEBRATE30TH로 색이 다른 제르네아스 배포",
+      "event_key": "Pokémon LEGENDS Z-A CELEBRATE30TH",
+      "source_url": "https://tcgnews.kr/article/230",
+      "base_date": "2026-11-13",
+      "has_news": true,
+      "hook": "암호 'CELEBRATE30TH' 입력하면 색이 다른 제르네아스(Shiny Xerneas)를 받을 수 있어요✨ Nintendo Switch·Nintendo Switch 2 버전에서 모두 가능하고, 2027년 1월 7일까지 수령 가능합니다. 방법은 메뉴 → Link Play → Mystery Gift → Get with Code/Password에 CELEBRATE30TH 입력 후 저장하면 돼요. 패키지판·다운로드판 모두 가능하고 저장데이터당 1회 수령만 허용됩니다. 색이 다른 이벨타르는 2026년 12월 10일부터 배포 예정(코드 미공개). 출처: TCG뉴스·pokemon.com #포켓몬 #포켓몬레전즈ZA #색이다른제르네아스",
+      "text": "암호 'CELEBRATE30TH' 입력하면 색이 다른 제르네아스(Shiny Xerneas)를 받을 수 있어요✨ Nintendo Switch·Nintendo Switch 2 버전에서 모두 가능하고, 2027년 1월 7일까지 수령 가능합니다. 방법은 메뉴 → Link Play → Mystery Gift → Get with Code/Password에 CELEBRATE30TH 입력 후 저장하면 돼요. 패키지판·다운로드판 모두 가능하고 저장데이터당 1회 수령만 허용됩니다. 색이 다른 이벨타르는 2026년 12월 10일부터 배포 예정(코드 미공개). 출처: TCG뉴스·pokemon.com #포켓몬 #포켓몬레전즈ZA #색이다른제르네아스",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-11-14T13:15:37.168290+09:00"
     }
   ],
   "checked": {
@@ -3166,6 +3178,6 @@
   },
   "slots": {
     "buyguide": "2026-11-14T12",
-    "scheduled": "2026-11-14T09"
+    "scheduled": "2026-11-14T13"
   }
 }
