@@ -2094,6 +2094,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-11-16T21:03:01.655730+09:00"
+    },
+    {
+      "topic": "Pokémon TCG 'Wonderful Waters' 미니 틴 5종 출시(2027-01-29)",
+      "event_key": "Wonderful Waters",
+      "source_url": "https://criticalhits.com.br/card-games/pokemon-tcg-anuncia-a-colecao-wonderful-waters-com-cinco-mini-tins/",
+      "base_date": "2026-11-16",
+      "has_news": true,
+      "hook": "1월 29일, 'Wonderful Waters' 미니 틴 5종이 출시돼요. 💧",
+      "text": "1월 29일, 'Wonderful Waters' 미니 틴 5종이 출시돼요. 💧\n각 틴은 US$9.99로 판매되며 틴 안에는 부스터팩 2장, 틴 아트의 아트 카드, 스티커 시트, Pokémon TCG Live용 코드 카드가 포함된다고 알려졌어요. 일러스트는 물타입 포켓몬(Dragonair, Amaura, Staryu, Slowbro, Froakie 등)을 중심으로 하고, 5종을 나란히 놓으면 하나로 연결되는 대형 이미지 구성이라고 합니다. 부스터의 구체적 라인업은 아직 공식 확인 전이에요.\n출처: Critical Hits, Everyeye\n#포켓몬카드 #포켓몬TCG #WonderfulWaters",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-11-17T09:04:30.130646+09:00"
     }
   ],
   "checked": {
@@ -3294,6 +3306,6 @@
   },
   "slots": {
     "buyguide": "2026-11-16T18",
-    "scheduled": "2026-11-16T21"
+    "scheduled": "2026-11-17T09"
   }
 }
