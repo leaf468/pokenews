@@ -2130,6 +2130,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-11-17T14:34:23.288549+09:00"
+    },
+    {
+      "topic": "미국 매장에 Flowing Fists 팩 유통 유출",
+      "event_key": "Flowing Fists",
+      "source_url": "https://www.polygon.com/pokemon-tcg-flowing-fists-mega-lucario-z-ex-card-early-release-dollar-general/",
+      "base_date": "2026-11-17",
+      "has_news": true,
+      "hook": "미국 매장에 'Flowing Fists' 팩이 공식 발매 몇 달 전에 이미 풀렸대요. Polygon(2026-11-17) 보도에 따르면 Dollar General 등에서 소비자가 Flowing Fists 팩을 구매한 영수증·개봉 영상이 올라왔고, 일부 개봉에서 Tynamo 프로모와 Mega Lucario Z-EX 일러스트 카드 사진이 공유됐습니다. 해당 Lucario 카드 리스팅은 eBay에서 내려갔다고 해요. 유통 오류라는 추측이 많은 상황이니 낙찰가 어디까지 뛸지 같이 지켜볼까요. 🔍",
+      "text": "미국 매장에 'Flowing Fists' 팩이 공식 발매 몇 달 전에 이미 풀렸대요. Polygon(2026-11-17) 보도에 따르면 Dollar General 등에서 소비자가 Flowing Fists 팩을 구매한 영수증·개봉 영상이 올라왔고, 일부 개봉에서 Tynamo 프로모와 Mega Lucario Z-EX 일러스트 카드 사진이 공유됐습니다. 해당 Lucario 카드 리스팅은 eBay에서 내려갔다고 해요. 유통 오류라는 추측이 많은 상황이니 낙찰가 어디까지 뛸지 같이 지켜볼까요. 🔍\n출처: Polygon\n#포켓몬카드 #포켓몬TCG #FlowingFists",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-11-18T09:07:40.041235+09:00"
     }
   ],
   "checked": {
@@ -3360,6 +3372,6 @@
   },
   "slots": {
     "buyguide": "2026-11-17T18",
-    "scheduled": "2026-11-17T21"
+    "scheduled": "2026-11-18T09"
   }
 }
