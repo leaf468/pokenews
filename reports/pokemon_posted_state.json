@@ -2154,6 +2154,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-11-18T13:07:45.977267+09:00"
+    },
+    {
+      "topic": "Target 블랙프라이데이 기간 포켓몬 TCG 도어버스터·TCG 드롭 일정",
+      "event_key": "Target Black Friday Sale 2026",
+      "source_url": "https://www.msn.com/en-us/gaming/general/target-s-official-black-friday-sale-is-good-news-for-pok%C3%A9mon-tcg-fans/ar-AA2gdzwH",
+      "base_date": "2026-11-17",
+      "has_news": true,
+      "hook": "Target의 블랙프라이데이가 포켓몬 TCG 팬들에겐 노릴 만한 기회예요🛒 Polygon on MSN(2026-11-17)은 Target이 Pokémon 30th Anniversary TCG 제품을 블랙프라이데이 도어버스터로 준비할 예정이라고 전했고, IGN(2026-11-18)은 Target의 블랙프라이데이 세일이 2026년 11월 22일에 시작되며 매장 선착순 기프트카드 증정은 11월 27일, 'Pokemon TCG Drop'은 11월 28일에 예정되어 있다고 보도했어요. 현장·온라인 유통 방식이 매장별로 다를 수 있으니 갈 계획 있는 분들은 일정 확인하되 지갑은 잘 챙기세요. 출처: IGN / Polygon on MSN #포켓몬카드 #포켓몬TCG #Target #블랙프라이데이",
+      "text": "Target의 블랙프라이데이가 포켓몬 TCG 팬들에겐 노릴 만한 기회예요🛒 Polygon on MSN(2026-11-17)은 Target이 Pokémon 30th Anniversary TCG 제품을 블랙프라이데이 도어버스터로 준비할 예정이라고 전했고, IGN(2026-11-18)은 Target의 블랙프라이데이 세일이 2026년 11월 22일에 시작되며 매장 선착순 기프트카드 증정은 11월 27일, 'Pokemon TCG Drop'은 11월 28일에 예정되어 있다고 보도했어요. 현장·온라인 유통 방식이 매장별로 다를 수 있으니 갈 계획 있는 분들은 일정 확인하되 지갑은 잘 챙기세요. 출처: IGN / Polygon on MSN #포켓몬카드 #포켓몬TCG #Target #블랙프라이데이",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-11-18T21:06:29.258350+09:00"
     }
   ],
   "checked": {
@@ -3394,6 +3406,6 @@
   },
   "slots": {
     "buyguide": "2026-11-18T18",
-    "scheduled": "2026-11-18T17"
+    "scheduled": "2026-11-18T21"
   }
 }
