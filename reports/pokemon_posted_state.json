@@ -2178,6 +2178,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-11-19T17:13:04.520920+09:00"
+    },
+    {
+      "topic": "30th Celebration Knock Out Collection 아마존 재입고 및 가격 인하",
+      "event_key": "Pokémon TCG: 30th Celebration Knock Out Collection",
+      "source_url": "https://www.ign.com/articles/pokmon-tcg-30th-celebration-knock-out-collection-is-back-in-stock-at-amazon-with-a-price-drop",
+      "base_date": "2026-11-19",
+      "has_news": true,
+      "hook": "아마존에 'Pokémon TCG: 30th Celebration Knock Out Collection'이 재입고됐고 가격이 내려갔어요 📦",
+      "text": "아마존에 'Pokémon TCG: 30th Celebration Knock Out Collection'이 재입고됐고 가격이 내려갔어요 📦\n이 콜렉션에는 이브이 포일 프로모 카드 1장, 플라스틱 코인, 30th Celebration 부스터팩 2장이 포함돼요. IGN(2026-11-19) 보도에선 현재 Amazon(판매·배송 모두 Amazon)에서 UK 리스팅이 £24.12로 통상 £27.61보다 약 13% 할인된 상태이고, 미국 매물은 약 $31.84 수준이라고 전했습니다. 포켓몬 센터(UK·US)는 여전히 품절이라서 아마존 재고가 빠르게 소진될 수 있어요 — 프로모 하나 노리는 분들은 체크해보세요.\n출처: IGN\n#포켓몬카드 #포켓몬TCG #30주년",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-11-20T09:08:38.184341+09:00"
     }
   ],
   "checked": {
@@ -3470,6 +3482,6 @@
   },
   "slots": {
     "buyguide": "2026-11-19T18",
-    "scheduled": "2026-11-19T21"
+    "scheduled": "2026-11-20T09"
   }
 }
