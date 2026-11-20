@@ -2202,6 +2202,18 @@
       "source_urls": [],
       "buy_keys": [],
       "posted_at": "2026-11-20T17:10:46.377589+09:00"
+    },
+    {
+      "topic": "Pokémon TCG: Mega Evolution – Flowing Fists 프리오더 개시(TCGplayer)",
+      "event_key": "Pokémon TCG: Mega Evolution – Flowing Fists",
+      "source_url": "https://mashable.com/life/pokemon-tcg-flowing-fist-preorders-where-to-buy",
+      "base_date": "2026-11-20",
+      "has_news": true,
+      "hook": "선주문이 벌써 열렸어요 — Pokémon TCG: Mega Evolution – Flowing Fists 프리오더가 TCGplayer에서 시작됐습니다🛒. 정식 발매는 2027년 2월 6일이고, 프리릴리즈 토너먼트는 2027년 1월 23일부터 참가 리테일에서 열린다고 해요. 확장팩은 110장 이상 수록으로 Mega Lucario Z ex, Mega Garchomp Z ex, Mega Absol Z ex, Mega Glimmora ex 등이 포함됩니다. Mashable 기준으로 Single Pack Blister(티나모 프로모 포함) $19.98, Booster Pack $19.99, Booster Bundle $69.96, Elite Trainer Box $179.94 등으로 리스팅돼 있으니 선주문 노리시는 분들은 참고하세요. 출처: Mashable·Nintendo Insider",
+      "text": "선주문이 벌써 열렸어요 — Pokémon TCG: Mega Evolution – Flowing Fists 프리오더가 TCGplayer에서 시작됐습니다🛒. 정식 발매는 2027년 2월 6일이고, 프리릴리즈 토너먼트는 2027년 1월 23일부터 참가 리테일에서 열린다고 해요. 확장팩은 110장 이상 수록으로 Mega Lucario Z ex, Mega Garchomp Z ex, Mega Absol Z ex, Mega Glimmora ex 등이 포함됩니다. Mashable 기준으로 Single Pack Blister(티나모 프로모 포함) $19.98, Booster Pack $19.99, Booster Bundle $69.96, Elite Trainer Box $179.94 등으로 리스팅돼 있으니 선주문 노리시는 ",
+      "source_urls": [],
+      "buy_keys": [],
+      "posted_at": "2026-11-20T21:10:26.999289+09:00"
     }
   ],
   "checked": {
@@ -3526,6 +3538,6 @@
   },
   "slots": {
     "buyguide": "2026-11-20T18",
-    "scheduled": "2026-11-20T17"
+    "scheduled": "2026-11-20T21"
   }
 }
